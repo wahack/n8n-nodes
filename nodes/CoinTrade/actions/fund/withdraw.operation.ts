@@ -76,6 +76,8 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 
 			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
+
+
 			const coin = this.getNodeParameter('coin', i) as string;
 			const address = this.getNodeParameter('address', i) as string;
 			const amount = this.getNodeParameter('amount', i) as number;

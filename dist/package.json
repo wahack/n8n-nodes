@@ -47,6 +47,7 @@
     },
     "devDependencies": {
         "@types/lodash": "^4.17.7",
+        "@types/qs": "^6.9.15",
         "@typescript-eslint/parser": "^7.15.0",
         "eslint": "^8.56.0",
         "eslint-plugin-n8n-nodes-base": "^1.16.1",
@@ -59,7 +60,11 @@
         "n8n-workflow": "*"
     },
     "dependencies": {
+        "@types/node": "^22.4.1",
+        "axios": "^1.7.4",
         "ccxt": "^4.3.84",
-        "lodash": "^4.17.21"
+        "lodash": "^4.17.21",
+        "qs": "^6.13.0",
+        "socks-proxy-agent": "^8.0.4"
     }
 }

@@ -23,9 +23,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.description = exports.withdraw = void 0;
+exports.description = exports.coinInfo = exports.withdraw = void 0;
 const withdraw = __importStar(require("./withdraw.operation"));
 exports.withdraw = withdraw;
+const coinInfo = __importStar(require("./coinInfo.operation"));
+exports.coinInfo = coinInfo;
 exports.description = [
     {
         displayName: 'Operation',
@@ -38,6 +40,17 @@ exports.description = [
                 value: 'withdraw',
                 description: 'withdraw coin on chain ',
                 action: 'withdraw fund',
+            },
+            {
+                name: 'coinInfo',
+                value: 'coinInfo',
+                displayOptions: {
+                    show: {
+                        platform: ['binance']
+                    }
+                },
+                description: 'Get information of coins (available for deposit and withdraw) for user.',
+                action: 'get coin info',
             }
         ],
         default: 'withdraw',
@@ -48,5 +61,6 @@ exports.description = [
         },
     },
     ...withdraw.description,
+    ...coinInfo.description,
 ];
 //# sourceMappingURL=fund.resource.js.map
