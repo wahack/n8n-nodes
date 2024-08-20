@@ -37,7 +37,7 @@ export class CoinTradeApi implements ICredentialType {
 			default: '',
 			required: true,
 			typeOptions: {
-				password: false,
+				password: true,
 			}
 		},
 		{
@@ -56,6 +56,9 @@ export class CoinTradeApi implements ICredentialType {
 			type: 'string',
 			default: '',
 			required: false,
+			typeOptions: {
+				password: true,
+			},
 			displayOptions: {
 				show: {
 					 platform: ['okx']

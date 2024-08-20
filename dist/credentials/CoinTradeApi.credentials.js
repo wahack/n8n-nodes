@@ -36,7 +36,7 @@ class CoinTradeApi {
                 default: '',
                 required: true,
                 typeOptions: {
-                    password: false,
+                    password: true,
                 }
             },
             {
@@ -55,6 +55,9 @@ class CoinTradeApi {
                 type: 'string',
                 default: '',
                 required: false,
+                typeOptions: {
+                    password: true,
+                },
                 displayOptions: {
                     show: {
                         platform: ['okx']
