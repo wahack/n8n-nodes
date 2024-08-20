@@ -4,7 +4,8 @@ import type {
 	INodeProperties,
 	IExecuteFunctions,
 } from 'n8n-workflow';
-import {binance} from 'ccxt';
+
+import exchanges from '../../helpers/exchanges';
 
 import {
 	updateDisplayOptions,
@@ -18,6 +19,41 @@ const properties: INodeProperties[] = [
 		type: 'string',
 		default: 'BTC/USDT',
 		required: true,
+	},{
+		displayName: 'isBuy',
+		name: 'isBuy',
+		type: 'boolean',
+		default: true,
+		required: false,
+	},
+	{
+		displayName: 'type',
+		name: 'type',
+		type: 'options',
+		default: 'market',
+		required: false,
+		options: [
+			{
+				name: 'market',
+				value: "market"
+			}, {
+				name: 'limit',
+				value: 'limit'
+			}
+		]
+	},
+	{
+		displayName: 'amount',
+		name: 'amount',
+		type: 'number',
+		default: '',
+		required: true,
+	},{
+		displayName: 'price',
+		name: 'price',
+		type: "number",
+		default: undefined,
+		required: false
 	}
 ];
 
@@ -35,17 +71,27 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	const returnData: INodeExecutionData[] = [];
 	const length = items.length;
 
-	// const platform = this.getNodeParameter('platform', 0);
-	const proxy = this.getNodeParameter('proxy', 0) as string;
-	const exchange = new binance({
-		proxy
-	});
+	const credentials = await this.getCredentials('coinTradeApi');
 
 	for (let i = 0; i < length; i++) {
 		try {
-			const symbol = this.getNodeParameter('symbol', i) as string;
+			const platform = this.getNodeParameter('platform', i) as string;
+			const exchange = exchanges.get(platform)
+			const proxy = this.getNodeParameter('proxy', i) as string;
+			exchanges.setProxy(exchange, proxy);
 
-			const responseData = await exchange.fetchTicker(symbol)
+			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
+
+			const symbol = this.getNodeParameter('symbol', i) as string;
+			const isBuy = this.getNodeParameter('isBuy', i) as boolean;
+			const type = this.getNodeParameter('type', i) as string;
+			const amount = this.getNodeParameter('amount', i) as number;
+			const price = this.getNodeParameter('price', i) as number;
+
+
+			const responseData = await exchange.createOrder(symbol, type, isBuy?'buy':'sell', amount, price)
+
+			exchanges.clearKeys(exchange);
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),

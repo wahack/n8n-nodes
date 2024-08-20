@@ -33,4 +33,5 @@ export const description: INodeProperties[] = [
 		},
 	},
 	...fetchTicker.description,
+	...fetchOrderBook.description
 ];

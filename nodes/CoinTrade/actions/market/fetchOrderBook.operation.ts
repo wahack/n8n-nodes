@@ -4,10 +4,11 @@ import type {
 	INodeProperties,
 	IExecuteFunctions,
 } from 'n8n-workflow';
-import {binance} from 'ccxt';
+import exchanges from '../../helpers/exchanges';
 
 import {
-	updateDisplayOptions
+	updateDisplayOptions,
+	wrapData
 } from '../../../../utils/utilities';
 
 
@@ -18,6 +19,13 @@ const properties: INodeProperties[] = [
 		type: 'string',
 		default: 'BTC/USDT',
 		required: true,
+	},
+	{
+		displayName: 'limit',
+		name: 'limit',
+		type: 'number',
+		default: 1,
+		required: false,
 	}
 ];
 
@@ -35,22 +43,23 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	const returnData: INodeExecutionData[] = [];
 	const length = items.length;
 
-	// const platform = this.getNodeParameter('platform', 0);
-	const proxy = this.getNodeParameter('proxy', 0) as string;
-	const exchange = new binance({
-		proxy
-	});
 
 	for (let i = 0; i < length; i++) {
 		try {
+			const platform = this.getNodeParameter('platform', i) as string;
+			const exchange = exchanges.get(platform)
+			const proxy = this.getNodeParameter('proxy', i) as string;
+			exchanges.setProxy(exchange, proxy);
 			const symbol = this.getNodeParameter('symbol', i) as string;
+			const limit = this.getNodeParameter('limit', i) as number;
 
-			const responseData = await exchange.fetchOrderBook(symbol)
+			const responseData = await exchange.fetchOrderBook(symbol, limit || 1)
 
 			const executionData = this.helpers.constructExecutionMetaData(
-				// wrapData(responseData as IDataObject[]),
 				// @ts-ignore
-				this.helpers.returnJsonArray(responseData as IDataObject),
+				wrapData(responseData as IDataObject[]),
+				// @ts-ignore
+				// this.helpers.returnJsonArray(responseData as IDataObject),
 
 				{ itemData: { item: i } },
 			);

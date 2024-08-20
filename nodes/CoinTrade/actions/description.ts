@@ -3,6 +3,8 @@ import type { INodeTypeDescription } from 'n8n-workflow';
 
 import * as market from './market/market.resource';
 import * as trade from './trade/trade.resource';
+import * as fund from './fund/fund.resource';
+
 
 export const description: INodeTypeDescription = {
 	displayName: 'Coin Trade',
@@ -24,7 +26,7 @@ export const description: INodeTypeDescription = {
 			required: false,
 			displayOptions: {
 				show: {
-					resource: ['trade'],
+					resource: ['trade','fund'],
 				},
 			},
 		}
@@ -45,6 +47,10 @@ export const description: INodeTypeDescription = {
 				}, {
 					name: 'okx',
 					value: 'okx',
+				},
+				{
+					name: 'bitget',
+					value: 'bitget',
 				}
 			],
 			default: 'binance',
@@ -69,12 +75,18 @@ export const description: INodeTypeDescription = {
 				},{
 					name: 'trade',
 					value: 'trade'
+				},
+				{
+					name: 'fund',
+					value: 'fund'
 				}
 			],
 			default: 'market',
 		},
 
 		...market.description,
-		...trade.description
+		...trade.description,
+		...fund.description,
+
 	],
 };

@@ -4,6 +4,7 @@ import type {
 	INodeProperties,
 	IExecuteFunctions,
 } from 'n8n-workflow';
+
 import exchanges from '../../helpers/exchanges';
 
 import {
@@ -13,18 +14,47 @@ import {
 
 const properties: INodeProperties[] = [
 	{
-		displayName: 'symbol',
-		name: 'symbol',
+		displayName: '币种',
+		name: 'coin',
 		type: 'string',
-		default: 'BTC/USDT',
+		default: '',
+		placeholder: 'BTC,USDT,ETH',
 		required: true,
+	},{
+		displayName: '数量',
+		name: 'amount',
+		type: 'number',
+		default: '',
+		required: true,
+	},
+	{
+		displayName: '地址',
+		name: 'address',
+		type: 'string',
+		default: '',
+		required: false,
+	},
+	{
+		displayName: '网络',
+		name: 'network',
+		type: 'string',
+		default: '',
+		placeholder: "ERC20,TRC20,BEP20,BEP2",
+		required: false,
+	},{
+		displayName: 'tag',
+		name: 'tag',
+		type: "string",
+		placeholder: "标签",
+		default: '',
+		required: false
 	}
 ];
 
 const displayOptions = {
 	show: {
-		resource: ['market'],
-		operation: ['fetchTicker'],
+		resource: ['fund'],
+		operation: ['withdraw'],
 	},
 };
 
@@ -35,6 +65,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	const returnData: INodeExecutionData[] = [];
 	const length = items.length;
 
+	const credentials = await this.getCredentials('coinTradeApi');
 
 	for (let i = 0; i < length; i++) {
 		try {
@@ -43,9 +74,17 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const proxy = this.getNodeParameter('proxy', i) as string;
 			exchanges.setProxy(exchange, proxy);
 
-			const symbol = this.getNodeParameter('symbol', i) as string;
+			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
-			const responseData = await exchange.fetchTicker(symbol)
+			const coin = this.getNodeParameter('coin', i) as string;
+			const address = this.getNodeParameter('address', i) as string;
+			const amount = this.getNodeParameter('amount', i) as number;
+			const network = this.getNodeParameter('network', i) as string;
+			const tag = this.getNodeParameter('tag', i) as string;
+
+			const responseData = await exchange.withdraw(coin, amount, address, tag, {network})
+
+			exchanges.clearKeys(exchange);
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
@@ -64,5 +103,6 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			throw error;
 		}
 	}
+
 	return returnData;
 }

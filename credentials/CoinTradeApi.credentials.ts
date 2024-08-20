@@ -1,6 +1,4 @@
 import {
-	IAuthenticateGeneric,
-	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
@@ -11,40 +9,70 @@ export class CoinTradeApi implements ICredentialType {
 	documentationUrl = '<your-docs-url>';
 	properties: INodeProperties[] = [
 		{
-			displayName: 'Token',
-			name: 'token',
+			displayName: '交易所',
+			name: 'platform',
+			type: 'options',
+			default: 'binance',
+			options: [
+				{
+					name: 'binance',
+					value: 'binance'
+				},
+				{
+					name: 'bybit',
+					value: 'bybit'
+				},{
+					name: 'okx',
+					value: 'okx'
+				}, {
+					name: 'bitget',
+					value: 'bitget'
+				}
+			]
+		},
+		{
+			displayName: 'api key',
+			name: 'apiKey',
 			type: 'string',
 			default: '',
+			required: true,
+			typeOptions: {
+				password: false,
+			}
+		},
+		{
+			displayName: 'api secret',
+			name: 'secret',
+			type: 'string',
+			default: '',
+			required: true,
 			typeOptions: {
 				password: true,
 			}
 		},
 		{
-			displayName: 'Domain',
-			name: 'domain',
+			displayName: 'api password',
+			name: 'password',
 			type: 'string',
-			default: 'https://httpbin.org',
+			default: '',
+			required: false,
+			displayOptions: {
+				show: {
+					 platform: ['okx']
+				}
+			}
 		},
+		// {
+		// 	displayName: 'api uid',
+		// 	name: 'uid',
+		// 	type: 'string',
+		// 	default: '',
+		// 	required: false,
+		// 	displayOptions: {
+		// 		show: {
+		// 			exchange: ['bybit']
+		// 		}
+		// 	}
+		// }
 	];
-
-	// This allows the credential to be used by other parts of n8n
-	// stating how this credential is injected as part of the request
-	// An example is the Http Request node that can make generic calls
-	// reusing this credential
-	authenticate: IAuthenticateGeneric = {
-		type: 'generic',
-		properties: {
-			headers: {
-				Authorization: '={{"Bearer " + $credentials.token}}',
-			},
-		},
-	};
-
-	// The block below tells how this credential can be tested
-	test: ICredentialTestRequest = {
-		request: {
-			baseURL: '={{$credentials?.domain}}',
-			url: '/bearer',
-		},
-	};
 }
