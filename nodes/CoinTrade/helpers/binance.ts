@@ -42,3 +42,31 @@ export async function postRequest (apiKey: string, secret: string, proxy: string
 	})
 	return res.data
 }
+
+export async function request (apiKey: string, secret: string, proxy: string,  path: string,method: string, data: any) {
+	data.timestamp = new Date().getTime();
+	data.recvWindow = 8000;
+	const res =  await axios({
+		url: host + path,
+		method,
+		headers: {
+			'X-MBX-APIKEY': apiKey,
+		},
+		httpAgent: new SocksProxyAgent(proxy),
+		httpsAgent: new SocksProxyAgent(proxy),
+		timeout: 8000,
+		data: method === 'get' ? null : {
+			...data,
+			signature: sign(data, secret)
+		},
+		params: method === 'get' ? {
+			...data,
+			signature: sign(data, secret)
+		} : null,
+	})
+	return res.data
+}
+
+
+
+

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRequest = getRequest;
 exports.postRequest = postRequest;
+exports.request = request;
 const axios_1 = __importDefault(require("axios"));
 const node_crypto_1 = __importDefault(require("node:crypto"));
 const qs_1 = __importDefault(require("qs"));
@@ -39,6 +40,29 @@ async function postRequest(apiKey, secret, proxy, path, data) {
         },
         httpAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
         httpsAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy)
+    });
+    return res.data;
+}
+async function request(apiKey, secret, proxy, path, method, data) {
+    data.timestamp = new Date().getTime();
+    data.recvWindow = 8000;
+    const res = await (0, axios_1.default)({
+        url: host + path,
+        method,
+        headers: {
+            'X-MBX-APIKEY': apiKey,
+        },
+        httpAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
+        httpsAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
+        timeout: 8000,
+        data: method === 'get' ? null : {
+            ...data,
+            signature: sign(data, secret)
+        },
+        params: method === 'get' ? {
+            ...data,
+            signature: sign(data, secret)
+        } : null,
     });
     return res.data;
 }

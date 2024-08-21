@@ -5,6 +5,7 @@ import type { CoinTradeType } from './node.type';
 import * as market from './market/market.resource';
 import * as trade from './trade/trade.resource';
 import * as fund from './fund/fund.resource';
+import * as custom from './custom/custom.resource';
 
 
 export async function router(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -33,6 +34,11 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 				break;
 			case 'fund':
 				returnData = await fund[coinTradeNodeData.operation].execute.call(
+					this
+				);
+				break;
+			case 'custom':
+				returnData = await custom[coinTradeNodeData.operation].execute.call(
 					this
 				);
 				break;

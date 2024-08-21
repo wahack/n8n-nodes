@@ -4,6 +4,7 @@ import type { INodeTypeDescription } from 'n8n-workflow';
 import * as market from './market/market.resource';
 import * as trade from './trade/trade.resource';
 import * as fund from './fund/fund.resource';
+import * as custom from './custom/custom.resource';
 
 
 export const description: INodeTypeDescription = {
@@ -79,6 +80,10 @@ export const description: INodeTypeDescription = {
 				{
 					name: 'fund',
 					value: 'fund'
+				},
+				{
+					name: 'custom',
+					value: 'custom'
 				}
 			],
 			default: 'market',
@@ -87,6 +92,6 @@ export const description: INodeTypeDescription = {
 		...market.description,
 		...trade.description,
 		...fund.description,
-
+		...custom.description
 	],
 };

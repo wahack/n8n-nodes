@@ -3,6 +3,7 @@ type NodeMap = {
     market: 'fetchTicker' | 'fetchOrderBook';
     trade: 'createOrder';
     fund: 'withdraw';
+    custom: 'customApi';
 };
 export type CoinTradeType = AllEntities<NodeMap>;
 export {};

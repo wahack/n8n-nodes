@@ -27,6 +27,7 @@ exports.description = void 0;
 const market = __importStar(require("./market/market.resource"));
 const trade = __importStar(require("./trade/trade.resource"));
 const fund = __importStar(require("./fund/fund.resource"));
+const custom = __importStar(require("./custom/custom.resource"));
 exports.description = {
     displayName: 'Coin Trade',
     name: 'coin trade',
@@ -100,6 +101,10 @@ exports.description = {
                 {
                     name: 'fund',
                     value: 'fund'
+                },
+                {
+                    name: 'custom',
+                    value: 'custom'
                 }
             ],
             default: 'market',
@@ -107,6 +112,7 @@ exports.description = {
         ...market.description,
         ...trade.description,
         ...fund.description,
+        ...custom.description
     ],
 };
 //# sourceMappingURL=description.js.map

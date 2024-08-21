@@ -28,6 +28,7 @@ const n8n_workflow_1 = require("n8n-workflow");
 const market = __importStar(require("./market/market.resource"));
 const trade = __importStar(require("./trade/trade.resource"));
 const fund = __importStar(require("./fund/fund.resource"));
+const custom = __importStar(require("./custom/custom.resource"));
 async function router() {
     let returnData = [];
     const resource = this.getNodeParameter('resource', 0);
@@ -46,6 +47,9 @@ async function router() {
                 break;
             case 'fund':
                 returnData = await fund[coinTradeNodeData.operation].execute.call(this);
+                break;
+            case 'custom':
+                returnData = await custom[coinTradeNodeData.operation].execute.call(this);
                 break;
             default:
                 throw new n8n_workflow_1.NodeOperationError(this.getNode(), `The operation "${operation}" is not supported!`);
