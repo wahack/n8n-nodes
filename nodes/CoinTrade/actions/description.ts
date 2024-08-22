@@ -27,7 +27,7 @@ export const description: INodeTypeDescription = {
 			required: false,
 			displayOptions: {
 				show: {
-					resource: ['trade','fund'],
+					resource: ['trade','fund', 'custom'],
 				},
 			},
 		}

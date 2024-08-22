@@ -48,7 +48,7 @@ exports.description = {
             required: false,
             displayOptions: {
                 show: {
-                    resource: ['trade', 'fund'],
+                    resource: ['trade', 'fund', 'custom'],
                 },
             },
         }
