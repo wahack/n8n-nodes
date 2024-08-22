@@ -17,43 +17,73 @@ const properties: INodeProperties[] = [
 		displayName: 'symbol',
 		name: 'symbol',
 		type: 'string',
-		default: 'BTC/USDT',
+		default: '',
+		placeholder: '格式: 现货BTC/USDT, usdt永续BTC/USDT:USDT,币本位永续ETH/USDT:ETH',
+		description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USDT:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
 		required: true,
 	},{
-		displayName: 'isBuy',
-		name: 'isBuy',
-		type: 'boolean',
-		default: true,
-		required: false,
+		displayName: 'side',
+		name: 'side',
+		type: 'options',
+		default: 'buy',
+		required: true,
+		options: [
+			{
+				name: '买入',
+				value: 'buy'
+			}, {
+				name: '卖出',
+				value: 'sell'
+			}
+		]
 	},
 	{
 		displayName: 'type',
 		name: 'type',
 		type: 'options',
 		default: 'market',
-		required: false,
+		required: true,
 		options: [
 			{
-				name: 'market',
+				name: '市场价',
 				value: "market"
 			}, {
-				name: 'limit',
+				name: '限价',
 				value: 'limit'
 			}
 		]
 	},
 	{
-		displayName: 'amount',
-		name: 'amount',
+		displayName: '数量',
+		name: 'quantity',
 		type: 'number',
-		default: '',
+		default: undefined,
 		required: true,
+	},{
+		displayName: '数量单位',
+		name: 'quantityUnit',
+		type: 'options',
+		default: 'count',
+		options: [
+			{
+				name: "币数量(个)",
+				value: "count"
+			}, {
+				name: "金额(usdt)",
+				value: 'usdt'
+			}
+		]
 	},{
 		displayName: 'price',
 		name: 'price',
 		type: "number",
 		default: undefined,
-		required: false
+		required: false,
+		displayOptions: {
+			show: {
+				type: ['limit']
+			}
+		}
 	}
 ];
 
@@ -73,26 +103,61 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 
 	const credentials = await this.getCredentials('coinTradeApi');
 
+
 	for (let i = 0; i < length; i++) {
 		try {
 			const platform = this.getNodeParameter('platform', i) as string;
 			const exchange = exchanges.get(platform)
 			const proxy = this.getNodeParameter('proxy', i) as string;
 			exchanges.setProxy(exchange, proxy);
-
 			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
-			const symbol = this.getNodeParameter('symbol', i) as string;
-			const isBuy = this.getNodeParameter('isBuy', i) as boolean;
+			const symbol = (this.getNodeParameter('symbol', i) as string).toUpperCase();
+			let side = this.getNodeParameter('side', i) as string;
 			const type = this.getNodeParameter('type', i) as string;
-			const amount = this.getNodeParameter('amount', i) as number;
-			const price = this.getNodeParameter('price', i) as number;
+			const quantity = this.getNodeParameter('quantity', i) as number;
+			const quantityUnit = this.getNodeParameter('quantityUnit', i) as string;
+			const price = type === 'limit' ? this.getNodeParameter('price', i) as number : undefined;
+
+			let amount: number = 0;
+			await exchange.loadMarkets();
+			const market = exchange.market(symbol);
+
+			if (platform === 'okx') {
+				if (market.contract) {
+					// params.positionSide = positionSide;
+					if (market['quote'] === 'USD') {
+						let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
+						amount = Math.round(total / market['contractSize']!); //币本位,合约面值1张xx美元
+					} else if (market['quote'] === 'USDT') {
+						let count = quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0);
+						amount = Math.round(count / market['contractSize']!); //u本位,合约面值1张多少个币
+					}
+				}
+			} else if (platform === 'binance') {
+				if (market.contract) {
+					if (market['quote'] === 'USD') {
+						let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
+						amount = Math.round(total / market['contractSize']!); //币本位,合约面值1张xx美元
+					}
+				}
+			} else if (platform === 'bybit') {
+
+			} else if (platform === 'bitget') {
+				if (market.contract) {
+					side = side + '_single';
+				}
+			} else {
+				throw new Error('exchange not support')
+			}
 
 
-			const responseData = await exchange.createOrder(symbol, type, isBuy?'buy':'sell', amount, price)
+			if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0)));
+
+
+			const responseData = await exchange.createOrder(symbol, type, side, amount, price)
 
 			exchanges.clearKeys(exchange);
-
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
 				// @ts-ignore
