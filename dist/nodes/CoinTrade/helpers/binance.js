@@ -25,7 +25,8 @@ async function getRequest(apiKey, secret, proxy, path, data) {
             signature: sign(data, secret)
         },
         httpAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
-        httpsAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy)
+        httpsAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
+        validateStatus: null
     });
     return res.data;
 }
@@ -39,30 +40,29 @@ async function postRequest(apiKey, secret, proxy, path, data) {
             'X-MBX-APIKEY': apiKey,
         },
         httpAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
-        httpsAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy)
+        httpsAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
+        validateStatus: null
     });
     return res.data;
 }
 async function request(apiKey, secret, proxy, path, method, data) {
     data.timestamp = new Date().getTime();
-    data.recvWindow = 8000;
+    data.recvWindow = 10000;
     const res = await (0, axios_1.default)({
         url: host + path,
         method,
+        responseType: 'json',
         headers: {
             'X-MBX-APIKEY': apiKey,
         },
         httpAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
         httpsAgent: new socks_proxy_agent_1.SocksProxyAgent(proxy),
-        timeout: 8000,
-        data: method === 'get' ? null : {
+        timeout: 10000,
+        params: {
             ...data,
             signature: sign(data, secret)
         },
-        params: method === 'get' ? {
-            ...data,
-            signature: sign(data, secret)
-        } : null,
+        validateStatus: null
     });
     return res.data;
 }

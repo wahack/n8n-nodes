@@ -22,7 +22,8 @@ export async function getRequest (apiKey: string, secret: string, proxy: string,
 			signature: sign(data, secret)
 		},
 		httpAgent: new SocksProxyAgent(proxy),
-		httpsAgent: new SocksProxyAgent(proxy)
+		httpsAgent: new SocksProxyAgent(proxy),
+		validateStatus: null
 	})
 	return res.data
 }
@@ -38,35 +39,30 @@ export async function postRequest (apiKey: string, secret: string, proxy: string
 			'X-MBX-APIKEY': apiKey,
 		},
 		httpAgent: new SocksProxyAgent(proxy),
-		httpsAgent: new SocksProxyAgent(proxy)
+		httpsAgent: new SocksProxyAgent(proxy),
+		validateStatus: null
 	})
 	return res.data
 }
 
 export async function request (apiKey: string, secret: string, proxy: string,  path: string,method: string, data: any) {
 	data.timestamp = new Date().getTime();
-	data.recvWindow = 8000;
+	data.recvWindow = 10000;
 	const res =  await axios({
 		url: host + path,
 		method,
+		responseType: 'json',
 		headers: {
 			'X-MBX-APIKEY': apiKey,
 		},
 		httpAgent: new SocksProxyAgent(proxy),
 		httpsAgent: new SocksProxyAgent(proxy),
-		timeout: 8000,
-		data: method === 'get' ? null : {
+		timeout: 10000,
+		params: {
 			...data,
 			signature: sign(data, secret)
 		},
-		params: method === 'get' ? {
-			...data,
-			signature: sign(data, secret)
-		} : null,
+		validateStatus: null
 	})
 	return res.data
 }
-
-
-
-
