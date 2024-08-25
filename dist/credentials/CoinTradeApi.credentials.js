@@ -5,7 +5,6 @@ class CoinTradeApi {
     constructor() {
         this.name = 'coinTradeApi';
         this.displayName = 'CoinTrade API';
-        this.documentationUrl = '<your-docs-url>';
         this.properties = [
             {
                 displayName: '交易所',

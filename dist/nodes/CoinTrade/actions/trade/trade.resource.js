@@ -34,10 +34,10 @@ exports.description = [
         noDataExpression: true,
         options: [
             {
-                name: 'create order',
+                name: 'Create Order',
                 value: 'createOrder',
-                description: 'place an order.',
-                action: 'place an order',
+                description: 'Place an order',
+                action: 'Place an order',
             }
         ],
         default: 'createOrder',

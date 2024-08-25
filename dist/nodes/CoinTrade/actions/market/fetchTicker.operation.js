@@ -9,7 +9,7 @@ const exchanges_1 = __importDefault(require("../../helpers/exchanges"));
 const utilities_1 = require("../../../../utils/utilities");
 const properties = [
     {
-        displayName: 'symbol',
+        displayName: 'Symbol',
         name: 'symbol',
         type: 'string',
         default: 'BTC/USDT',

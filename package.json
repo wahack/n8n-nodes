@@ -1,15 +1,15 @@
 {
   "name": "n8n-nodes-turtle",
   "version": "0.1.0",
-  "description": "",
+  "description": "no description",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
   "homepage": "",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "wahack",
+    "email": "liaoyux@gmail.com"
   },
   "repository": {
     "type": "git",

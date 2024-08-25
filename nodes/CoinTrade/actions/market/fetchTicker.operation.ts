@@ -13,7 +13,7 @@ import {
 
 const properties: INodeProperties[] = [
 	{
-		displayName: 'symbol',
+		displayName: 'Symbol',
 		name: 'symbol',
 		type: 'string',
 		default: 'BTC/USDT',

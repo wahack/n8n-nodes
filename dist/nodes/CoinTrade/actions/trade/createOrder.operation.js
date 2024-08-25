@@ -9,7 +9,7 @@ const exchanges_1 = __importDefault(require("../../helpers/exchanges"));
 const utilities_1 = require("../../../../utils/utilities");
 const properties = [
     {
-        displayName: 'symbol',
+        displayName: 'Symbol',
         name: 'symbol',
         type: 'string',
         default: '',
@@ -17,7 +17,7 @@ const properties = [
         description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USDT:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
         required: true,
     }, {
-        displayName: 'side',
+        displayName: 'Side',
         name: 'side',
         type: 'options',
         default: 'buy',
@@ -33,7 +33,7 @@ const properties = [
         ]
     },
     {
-        displayName: 'type',
+        displayName: 'Type',
         name: 'type',
         type: 'options',
         default: 'market',
@@ -64,16 +64,15 @@ const properties = [
                 name: "币数量(个)",
                 value: "count"
             }, {
-                name: "金额(usdt)",
+                name: '金额(Usdt)',
                 value: 'usdt'
             }
         ]
     }, {
-        displayName: 'price',
+        displayName: 'Price',
         name: 'price',
         type: "number",
         default: undefined,
-        required: false,
         displayOptions: {
             show: {
                 type: ['limit']

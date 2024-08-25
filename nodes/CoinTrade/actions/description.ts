@@ -40,17 +40,17 @@ export const description: INodeTypeDescription = {
 			noDataExpression: true,
 			options: [
 				{
-					name: 'binance',
+					name: 'Binance',
 					value: 'binance',
 				}, {
-					name: 'bybit',
+					name: 'Bybit',
 					value: 'bybit',
 				}, {
-					name: 'okx',
+					name: 'Okx',
 					value: 'okx',
 				},
 				{
-					name: 'bitget',
+					name: 'Bitget',
 					value: 'bitget',
 				}
 			],
@@ -62,27 +62,26 @@ export const description: INodeTypeDescription = {
 			type: 'string',
 			default: '',
 			placeholder: 'e.g. socks://user:password@ip:port',
-			required: false
 		},
 		{
-			displayName: 'resource',
+			displayName: 'Resource',
 			name: 'resource',
 			type: 'options',
 			noDataExpression: true,
 			options: [
 				{
-					name: 'market',
+					name: 'Market',
 					value: 'market',
 				},{
-					name: 'trade',
+					name: 'Trade',
 					value: 'trade'
 				},
 				{
-					name: 'fund',
+					name: 'Fund',
 					value: 'fund'
 				},
 				{
-					name: 'custom',
+					name: 'Custom',
 					value: 'custom'
 				}
 			],

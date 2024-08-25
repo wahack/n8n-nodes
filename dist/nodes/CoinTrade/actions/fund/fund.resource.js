@@ -36,10 +36,10 @@ exports.description = [
         noDataExpression: true,
         options: [
             {
-                name: 'withdraw',
+                name: 'Withdraw',
                 value: 'withdraw',
-                description: 'withdraw coin on chain ',
-                action: 'withdraw fund',
+                description: 'Withdraw coin on chain',
+                action: 'Withdraw fund',
             },
             {
                 name: 'coinInfo',
@@ -49,8 +49,8 @@ exports.description = [
                         platform: ['binance']
                     }
                 },
-                description: 'Get information of coins (available for deposit and withdraw) for user.',
-                action: 'get coin info',
+                description: 'Get information of coins (available for deposit and withdraw) for user',
+                action: 'Get coin info',
             }
         ],
         default: 'withdraw',

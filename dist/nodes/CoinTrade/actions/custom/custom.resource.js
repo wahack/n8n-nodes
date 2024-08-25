@@ -34,10 +34,9 @@ exports.description = [
         noDataExpression: true,
         options: [
             {
-                name: 'custom api',
+                name: 'Custom Api',
                 value: 'customApi',
-                description: 'custom api',
-                action: 'custom api call',
+                action: 'Custom api call',
             },
         ],
         default: 'customApi',

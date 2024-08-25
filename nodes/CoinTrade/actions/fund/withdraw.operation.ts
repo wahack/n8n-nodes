@@ -32,7 +32,7 @@ const properties: INodeProperties[] = [
 		name: 'address',
 		type: 'string',
 		default: '',
-		required: false,
+
 	},
 	{
 		displayName: '网络',
@@ -40,14 +40,13 @@ const properties: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: "ERC20,TRC20,BEP20,BEP2",
-		required: false,
+
 	},{
-		displayName: 'tag',
+		displayName: 'Tag',
 		name: 'tag',
 		type: "string",
 		placeholder: "标签",
 		default: '',
-		required: false
 	}
 ];
 

@@ -6,7 +6,7 @@ import {
 export class CoinTradeApi implements ICredentialType {
 	name = 'coinTradeApi';
 	displayName = 'CoinTrade API';
-	documentationUrl = '<your-docs-url>';
+	// documentationUrl = '<your-docs-url>';
 	properties: INodeProperties[] = [
 		{
 			displayName: '交易所',

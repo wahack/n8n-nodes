@@ -9,18 +9,21 @@ const exchanges_1 = __importDefault(require("../../helpers/exchanges"));
 const utilities_1 = require("../../../../utils/utilities");
 const properties = [
     {
-        displayName: 'symbol',
+        displayName: 'Symbol',
         name: 'symbol',
         type: 'string',
         default: 'BTC/USDT',
         required: true,
     },
     {
-        displayName: 'limit',
+        displayName: 'Limit',
         name: 'limit',
         type: 'number',
-        default: 1,
-        required: false,
+        typeOptions: {
+            minValue: 1,
+        },
+        description: 'Max number of results to return',
+        default: 50,
     }
 ];
 const displayOptions = {

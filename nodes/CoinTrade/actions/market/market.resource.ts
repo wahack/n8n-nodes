@@ -13,16 +13,16 @@ export const description: INodeProperties[] = [
 		noDataExpression: true,
 		options: [
 			{
-				name: 'fetch ticker',
+				name: 'Fetch Ticker',
 				value: 'fetchTicker',
-				description: 'Fetch latest ticker data by trading symbol.',
-				action: 'fetch ticker',
+				description: 'Fetch latest ticker data by trading symbol',
+				action: 'Fetch ticker',
 			},
 			{
-				name: 'fetch order book',
+				name: 'Fetch Order Book',
 				value: 'fetchOrderBook',
-				description: 'Fetch L2/L3 order book for a particular market trading symbol.',
-				action: 'fetch order book',
+				description: 'Fetch L2/L3 order book for a particular market trading symbol',
+				action: 'Fetch order book',
 			},
 		],
 		default: 'fetchTicker',

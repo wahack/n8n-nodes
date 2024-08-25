@@ -22,35 +22,35 @@ function validateJSON(json: string | undefined): object {
 }
 const properties: INodeProperties[] = [
 	{
-		displayName: 'path',
+		displayName: 'Path',
 		name: 'path',
 		type: 'string',
 		default: '',
 		required: true,
 	},
 	{
-		displayName: 'method',
+		displayName: 'Method',
 		name: 'method',
 		type: 'options',
 		default: 'get',
 		options: [
 			{
-				name: "get",
+				name: 'Get',
 				value: 'get'
 			},
 			{
-				name: "post",
+				name: 'Post',
 				value: 'post'
 			},
 			{
-				name: "put",
+				name: 'Put',
 				value: 'put'
 			},
 		],
 		required: true,
 	},
 	{
-		displayName: 'data',
+		displayName: 'Data',
 		name: 'data',
 		type: 'json',
 		typeOptions: {
