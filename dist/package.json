@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-turtle",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "no description",
     "keywords": [
         "n8n-community-node-package"
@@ -36,13 +36,10 @@
     "n8n": {
         "n8nNodesApiVersion": 1,
         "credentials": [
-            "dist/credentials/ExampleCredentialsApi.credentials.js",
-            "dist/credentials/HttpBinApi.credentials.js"
+            "dist/credentials/CoinTradeApi.credentials.js"
         ],
         "nodes": [
-            "dist/nodes/CoinTrade/CoinTrade.node.js",
-            "dist/nodes/ExampleNode/ExampleNode.node.js",
-            "dist/nodes/HttpBin/HttpBin.node.js"
+            "dist/nodes/CoinTrade/CoinTrade.node.js"
         ]
     },
     "devDependencies": {
