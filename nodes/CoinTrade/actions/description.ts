@@ -38,6 +38,7 @@ export const description: INodeTypeDescription = {
 			name: 'platform',
 			type: 'options',
 			noDataExpression: true,
+			// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 			options: [
 				{
 					name: 'Binance',
@@ -52,6 +53,10 @@ export const description: INodeTypeDescription = {
 				{
 					name: 'Bitget',
 					value: 'bitget',
+				},
+				{
+					name: 'Gate',
+					value: 'gate',
 				}
 			],
 			default: 'binance',

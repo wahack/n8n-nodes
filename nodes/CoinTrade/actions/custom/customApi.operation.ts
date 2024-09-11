@@ -5,7 +5,7 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import {request} from '../../helpers/binance';
+import {request} from '../../helpers/request';
 
 import {
 	updateDisplayOptions,
@@ -87,8 +87,10 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 
 
 			const responseData = await request(
+				this.getNodeParameter('platform', i) as string,
 				credentials.apiKey as string,
 				credentials.secret as string,
+				(credentials.password as string) || '',
 				proxy,
 				path,
 				method,

@@ -25,6 +25,9 @@ class CoinTradeApi {
                     }, {
                         name: 'bitget',
                         value: 'bitget'
+                    }, {
+                        name: 'gate',
+                        value: 'gate'
                     }
                 ]
             },
@@ -59,7 +62,7 @@ class CoinTradeApi {
                 },
                 displayOptions: {
                     show: {
-                        platform: ['okx']
+                        platform: ['okx', 'bitget']
                     }
                 }
             },

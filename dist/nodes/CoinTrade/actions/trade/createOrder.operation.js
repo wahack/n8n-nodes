@@ -13,8 +13,8 @@ const properties = [
         name: 'symbol',
         type: 'string',
         default: '',
-        placeholder: '格式: 现货BTC/USDT, usdt永续BTC/USDT:USDT,币本位永续ETH/USDT:ETH',
-        description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USDT:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
+        placeholder: '格式: 现货BTC/USDT, usdt永续BTC/USDT:USDT,币本位永续ETH/USD:ETH',
+        description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USD:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
         required: true,
     }, {
         displayName: 'Side',
@@ -99,24 +99,24 @@ async function execute() {
             const proxy = this.getNodeParameter('proxy', i);
             exchanges_1.default.setProxy(exchange, proxy);
             exchanges_1.default.setKeys(exchange, credentials.apiKey, credentials.secret, credentials.password, credentials.uid);
-            const symbol = this.getNodeParameter('symbol', i).toUpperCase();
+            const symbol = this.getNodeParameter('symbol', i).trim().toUpperCase();
             let side = this.getNodeParameter('side', i);
             const type = this.getNodeParameter('type', i);
             const quantity = this.getNodeParameter('quantity', i);
             const quantityUnit = this.getNodeParameter('quantityUnit', i);
-            const price = type === 'limit' ? this.getNodeParameter('price', i) : undefined;
+            let price = type === 'limit' ? this.getNodeParameter('price', i) : undefined;
             let amount = 0;
             await exchange.loadMarkets();
             const market = exchange.market(symbol);
-            if (platform === 'okx') {
+            if (platform === 'okx' || platform === 'gate') {
                 if (market.contract) {
                     if (market['quote'] === 'USD') {
                         let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0);
-                        amount = Math.round(total / market['contractSize']);
+                        amount = Math.round(total / (market['contractSize'] || 1));
                     }
                     else if (market['quote'] === 'USDT') {
                         let count = quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0);
-                        amount = Math.round(count / market['contractSize']);
+                        amount = Math.round(count / (market['contractSize'] || 1));
                     }
                 }
             }
@@ -133,6 +133,11 @@ async function execute() {
             else if (platform === 'bitget') {
                 if (market.contract) {
                     side = side + '_single';
+                }
+                else {
+                    if (type === 'market' && side === 'buy') {
+                        price = (await exchange.fetchTicker(symbol)).last;
+                    }
                 }
             }
             else {

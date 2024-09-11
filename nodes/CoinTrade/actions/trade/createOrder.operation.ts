@@ -18,8 +18,8 @@ const properties: INodeProperties[] = [
 		name: 'symbol',
 		type: 'string',
 		default: '',
-		placeholder: '格式: 现货BTC/USDT, usdt永续BTC/USDT:USDT,币本位永续ETH/USDT:ETH',
-		description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USDT:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
+		placeholder: '格式: 现货BTC/USDT, usdt永续BTC/USDT:USDT,币本位永续ETH/USD:ETH',
+		description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USD:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
 		required: true,
 	},{
 		displayName: 'Side',
@@ -112,26 +112,26 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			exchanges.setProxy(exchange, proxy);
 			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
-			const symbol = (this.getNodeParameter('symbol', i) as string).toUpperCase();
+			const symbol = (this.getNodeParameter('symbol', i) as string).trim().toUpperCase();
 			let side = this.getNodeParameter('side', i) as string;
 			const type = this.getNodeParameter('type', i) as string;
 			const quantity = this.getNodeParameter('quantity', i) as number;
 			const quantityUnit = this.getNodeParameter('quantityUnit', i) as string;
-			const price = type === 'limit' ? this.getNodeParameter('price', i) as number : undefined;
+			let price = type === 'limit' ? this.getNodeParameter('price', i) as number : undefined;
 
 			let amount: number = 0;
 			await exchange.loadMarkets();
 			const market = exchange.market(symbol);
 
-			if (platform === 'okx') {
+			if (platform === 'okx' || platform === 'gate') {
 				if (market.contract) {
 					// params.positionSide = positionSide;
-					if (market['quote'] === 'USD') {
+					if (market['quote'] === 'USD') {//币本位
 						let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
-						amount = Math.round(total / market['contractSize']!); //币本位,合约面值1张xx美元
-					} else if (market['quote'] === 'USDT') {
+						amount = Math.round(total / (market['contractSize'] || 1)); //币本位,合约面值1张xx美元
+					} else if (market['quote'] === 'USDT') {//u本位
 						let count = quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0);
-						amount = Math.round(count / market['contractSize']!); //u本位,合约面值1张多少个币
+						amount = Math.round(count / (market['contractSize'] || 1)); //u本位,合约面值1张多少个币
 					}
 				}
 			} else if (platform === 'binance') {
@@ -146,6 +146,10 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			} else if (platform === 'bitget') {
 				if (market.contract) {
 					side = side + '_single';
+				} else { //现货
+					if (type === 'market' && side === 'buy') {
+						price = (await exchange.fetchTicker(symbol)).last
+					}
 				}
 			} else {
 				throw new Error('exchange not support')

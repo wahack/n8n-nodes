@@ -27,6 +27,9 @@ export class CoinTradeApi implements ICredentialType {
 				}, {
 					name: 'bitget',
 					value: 'bitget'
+				},{
+					name: 'gate',
+					value: 'gate'
 				}
 			]
 		},
@@ -61,7 +64,7 @@ export class CoinTradeApi implements ICredentialType {
 			},
 			displayOptions: {
 				show: {
-					 platform: ['okx']
+					 platform: ['okx', 'bitget']
 				}
 			}
 		},

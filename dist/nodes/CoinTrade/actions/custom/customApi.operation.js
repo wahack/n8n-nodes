@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.description = void 0;
 exports.execute = execute;
-const binance_1 = require("../../helpers/binance");
+const request_1 = require("../../helpers/request");
 const utilities_1 = require("../../../../utils/utilities");
 function validateJSON(json) {
     let result;
@@ -71,7 +71,7 @@ async function execute() {
             const path = this.getNodeParameter('path', i);
             const method = this.getNodeParameter('method', i);
             const data = validateJSON(this.getNodeParameter('data', i));
-            const responseData = await (0, binance_1.request)(credentials.apiKey, credentials.secret, proxy, path, method, data);
+            const responseData = await (0, request_1.request)(this.getNodeParameter('platform', i), credentials.apiKey, credentials.secret, credentials.password || '', proxy, path, method, data);
             const executionData = this.helpers.constructExecutionMetaData(this.helpers.returnJsonArray(responseData), { itemData: { item: i } });
             returnData.push(...executionData);
         }

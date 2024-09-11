@@ -73,6 +73,10 @@ exports.description = {
                 {
                     name: 'Bitget',
                     value: 'bitget',
+                },
+                {
+                    name: 'Gate',
+                    value: 'gate',
                 }
             ],
             default: 'binance',
