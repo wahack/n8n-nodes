@@ -1,4 +1,3 @@
-/* eslint-disable n8n-nodes-base/node-class-description-outputs-wrong */
 /* eslint-disable n8n-nodes-base/node-filename-against-convention */
 import type { INodeTypeDescription } from 'n8n-workflow';
 import { NodeConnectionType } from 'n8n-workflow';
@@ -21,6 +20,7 @@ export const description: INodeTypeDescription = {
 	},
 	group: ['input', 'output'],
 	inputs: [NodeConnectionType.Main],
+	// eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
 	outputs: [NodeConnectionType.Main],
 	credentials: [
 		{
