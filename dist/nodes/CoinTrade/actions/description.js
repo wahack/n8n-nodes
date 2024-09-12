@@ -30,17 +30,17 @@ const fund = __importStar(require("./fund/fund.resource"));
 const custom = __importStar(require("./custom/custom.resource"));
 exports.description = {
     displayName: 'Coin Trade',
-    name: 'coin trade',
+    name: 'coinTrade',
     icon: 'file:cointrade.svg',
-    group: ['input'],
     version: 1,
     subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
     description: 'consume the crypto exchange api',
     defaults: {
         name: 'Coin Trade',
     },
-    inputs: ['main'],
-    outputs: ['main'],
+    group: ['input', 'output'],
+    inputs: ["main"],
+    outputs: ["main"],
     credentials: [
         {
             name: 'coinTradeApi',

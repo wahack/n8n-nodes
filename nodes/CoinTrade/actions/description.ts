@@ -1,5 +1,7 @@
+/* eslint-disable n8n-nodes-base/node-class-description-outputs-wrong */
 /* eslint-disable n8n-nodes-base/node-filename-against-convention */
 import type { INodeTypeDescription } from 'n8n-workflow';
+import { NodeConnectionType } from 'n8n-workflow';
 
 import * as market from './market/market.resource';
 import * as trade from './trade/trade.resource';
@@ -9,17 +11,17 @@ import * as custom from './custom/custom.resource';
 
 export const description: INodeTypeDescription = {
 	displayName: 'Coin Trade',
-	name: 'coin trade',
+	name: 'coinTrade',
 	icon: 'file:cointrade.svg',
-	group: ['input'],
 	version: 1,
 	subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
 	description: 'consume the crypto exchange api',
 	defaults: {
 		name: 'Coin Trade',
 	},
-	inputs: ['main'],
-	outputs: ['main'],
+	group: ['input', 'output'],
+	inputs: [NodeConnectionType.Main],
+	outputs: [NodeConnectionType.Main],
 	credentials: [
 		{
 			name: 'coinTradeApi',

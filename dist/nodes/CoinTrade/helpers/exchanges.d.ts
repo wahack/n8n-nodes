@@ -16,7 +16,6 @@ declare class Exchanges {
         bingx: typeof ccxt.bingx;
         bit2c: typeof ccxt.bit2c;
         bitbank: typeof ccxt.bitbank;
-        bitbay: typeof ccxt.bitbay;
         bitbns: typeof ccxt.bitbns;
         bitcoincom: typeof ccxt.bitcoincom;
         bitfinex: typeof ccxt.bitfinex;
@@ -64,8 +63,8 @@ declare class Exchanges {
         gate: typeof ccxt.gate;
         gateio: typeof ccxt.gateio;
         gemini: typeof ccxt.gemini;
+        hashkey: typeof ccxt.hashkey;
         hitbtc: typeof ccxt.hitbtc;
-        hitbtc3: typeof ccxt.hitbtc3;
         hollaex: typeof ccxt.hollaex;
         htx: typeof ccxt.htx;
         huobi: typeof ccxt.huobi;

@@ -37,7 +37,7 @@ export class CoinTradeApi implements ICredentialType {
 			displayName: 'api key',
 			name: 'apiKey',
 			type: 'string',
-			default: '',
+			default: undefined,
 			required: true,
 			typeOptions: {
 				password: true,
@@ -47,7 +47,7 @@ export class CoinTradeApi implements ICredentialType {
 			displayName: 'api secret',
 			name: 'secret',
 			type: 'string',
-			default: '',
+			default: undefined,
 			required: true,
 			typeOptions: {
 				password: true,

@@ -35,7 +35,7 @@ class CoinTradeApi {
                 displayName: 'api key',
                 name: 'apiKey',
                 type: 'string',
-                default: '',
+                default: undefined,
                 required: true,
                 typeOptions: {
                     password: true,
@@ -45,7 +45,7 @@ class CoinTradeApi {
                 displayName: 'api secret',
                 name: 'secret',
                 type: 'string',
-                default: '',
+                default: undefined,
                 required: true,
                 typeOptions: {
                     password: true,

@@ -51,16 +51,17 @@
         "gulp": "^4.0.2",
         "n8n-workflow": "*",
         "prettier": "^3.3.2",
-        "typescript": "^5.5.3"
+        "typescript": "^5.5.3",
+        "@types/node": "^22.4.1"
     },
     "peerDependencies": {
         "n8n-workflow": "*"
     },
     "dependencies": {
-        "@types/node": "^22.4.1",
         "axios": "^1.7.4",
-        "ccxt": "^4.3.84",
+        "ccxt": "^4.4.2",
         "lodash": "^4.17.21",
+        "moment-timezone": "^0.5.45",
         "qs": "^6.13.0",
         "socks-proxy-agent": "^8.0.4"
     }
