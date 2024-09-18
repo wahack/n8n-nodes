@@ -5,6 +5,8 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
+import BigNumber from 'bignumber.js';
+
 import exchanges from '../../exchanges';
 
 import {
@@ -138,10 +140,11 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			let price = type === 'limit' ? this.getNodeParameter('price', i) as number : undefined;
 
 			let amount: number = 0;
-			await exchange.loadMarkets();
-			const market = exchange.market(symbol);
+
 
 			if (platform === 'okx' || platform === 'gate') {
+				await exchange.loadMarkets();
+			const market = exchange.market(symbol);
 				if (market.contract) {
 					// params.positionSide = positionSide;
 					if (market['quote'] === 'USD') {//币本位
@@ -153,6 +156,8 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 					}
 				}
 			} else if (platform === 'binance') {
+				await exchange.loadMarkets();
+				const market = exchange.market(symbol);
 				if (market.contract) {
 					if (market['quote'] === 'USD') {
 						let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
@@ -162,6 +167,8 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			} else if (platform === 'bybit') {
 
 			} else if (platform === 'bitget') {
+				await exchange.loadMarkets();
+				const market = exchange.market(symbol);
 				if (market.contract) {
 					side = side + '_single';
 				} else { //现货
@@ -169,12 +176,10 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 						price = (await exchange.fetchTicker(symbol)).last
 					}
 				}
-			} else {
-				throw new Error('exchange not support')
 			}
 
 
-			if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0)));
+			if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : new BigNumber(quantity).dividedBy((await exchange.fetchTicker(symbol)).last || 0).toNumber()));
 
 
 			const responseData = await exchange.createOrder(symbol, type, side, amount, price, params || {})

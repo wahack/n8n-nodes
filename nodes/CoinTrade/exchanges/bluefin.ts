@@ -171,7 +171,9 @@ export default class bluefin extends Exchange {
             'precisionMode': 4//TICK_SIZE,
         });
     }
-
+		amountToPrecision (symbol: string, amount: string): string {
+			return amount;
+		}
     async fetchAccounts (): Promise<Account[]> {
 			await this.initSigningKey()
 			const res = await this.request('/account', 'private', 'GET', undefined, undefined)
