@@ -28,7 +28,5 @@
 		"package.json",
 	],
 	"exclude": [
-		"nodes/CoinTrade/local-test/*",
-		"nodes/CoinTrade/lib/**/*"
 	]
 }

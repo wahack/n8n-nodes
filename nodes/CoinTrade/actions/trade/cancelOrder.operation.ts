@@ -34,7 +34,7 @@ const properties: INodeProperties[] = [
 		typeOptions: {
 			alwaysOpenEditWindow: true,
 		},
-		default: ''
+		default: '{}'
 	}
 ];
 

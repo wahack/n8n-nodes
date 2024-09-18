@@ -6,8 +6,7 @@ import { formatUnits } from 'viem';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 import type { Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Ticker, OHLCV, Num, Account, Dict, int } from 'ccxt';
-// @ts-ignore
-import { Networks, BluefinClient } from "../lib/bluefin";
+import { Networks, BluefinClient } from "@bluefin-exchange/bluefin-v2-client";
 
 /**
  * @class bluefin
@@ -43,14 +42,16 @@ export default class bluefin extends Exchange {
 		}
 		private async getPrivateClient (): Promise<BluefinClient>{
 			this.checkRequiredCredentials ();
-			if (this.clientCached.get(this.apiKey)) return this.clientCached.get(this.apiKey);
+			if (this.clientCached.get(this.apiKey)) return this.clientCached.get(this.apiKey)!;
 			const client = new BluefinClient(
 				true,
 				Networks.PRODUCTION_SUI,
 				'0x' + this.secret,
 				"ED25519" //valid values are ED25519 or Secp256k1
-			); //passing isTermAccepted = true for compliance and authorizarion
+			);
+			// @ts-ignore
 			client.apiService.apiService.defaults.httpAgent = new SocksProxyAgent(this.socksProxy)
+			// @ts-ignore
 			client.apiService.apiService.defaults.httpsAgent = new SocksProxyAgent(this.socksProxy)
 			try {
 				await client.init();
@@ -216,9 +217,9 @@ export default class bluefin extends Exchange {
 			const client = await this.getPrivateClient();
 
 			const res = await client.getUserOrders({
-				orderId: id, statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED",
-					"REJECTED", "STAND_BY", "PENDING"
-				]
+				//@ts-ignore
+				orderId: +id, statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED","REJECTED", "STAND_BY", "PENDING"]
+
 			})
 			return this.parseOrderData(res.data[0])
     }
@@ -296,8 +297,8 @@ export default class bluefin extends Exchange {
 				leverage: 5,
 			}
 			const client = await this.getPrivateClient();
-			const res = await client.postOrder(orderParams);
 			// @ts-ignore
+			const res = await client.postOrder(orderParams);
 			return this.parseOrderData(res.data)
     }
 
@@ -310,7 +311,7 @@ export default class bluefin extends Exchange {
 				hashes: [params.orderHash],
 				symbol: targetSymbol
 			})
-			if (!res.data.ok) throw new Error(res.response.message)
+			// if (!res.data.ok) throw new Error(res.response.message)
 			// @ts-ignore
 			return {
 				info: res.data.data,
