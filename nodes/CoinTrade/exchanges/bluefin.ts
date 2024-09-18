@@ -1,16 +1,68 @@
 
-
-import {Exchange} from 'ccxt';
+import BigNumber from 'bignumber.js';
+import { Exchange } from 'ccxt';
 import { ExchangeError, ArgumentsRequired } from 'ccxt';
+import { formatUnits } from 'viem';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry } from 'ccxt';
-
+import type { Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Ticker, OHLCV, Num, Account, Dict, int } from 'ccxt';
+// @ts-ignore
+import { Networks, BluefinClient } from "../lib/bluefin";
 
 /**
  * @class bluefin
  * @augments Exchange
  */
 export default class bluefin extends Exchange {
+		private signingKeyCached: Map<string, string> = new Map();
+		private clientCached: Map<string, BluefinClient> = new Map();
+
+		private setSigningKey (key: string, value: string) {
+			this.signingKeyCached.set(key, value);
+			setTimeout(() => {
+				this.signingKeyCached.delete(key);
+			}, 30 * 60 * 1000);
+		}
+		private getSigningKey (key: string) {
+			return this.signingKeyCached.get(key)
+		}
+		private async initSigningKey () {
+			this.checkRequiredCredentials ();
+			if (this.getSigningKey(this.apiKey)) return;
+			const client = new BluefinClient(
+				true,
+				Networks.PRODUCTION_SUI,
+				'0x' + this.secret,
+				"ED25519" //valid values are ED25519 or Secp256k1
+			); //passing isTermAccepted = true for compliance and authorizarion
+			await client.init();
+
+			// Uses key provided while initializing the client to generate the signature
+			const authToken  =  await client.userOnBoarding();
+			this.setSigningKey(this.apiKey, authToken )
+		}
+		private async getPrivateClient (): Promise<BluefinClient>{
+			this.checkRequiredCredentials ();
+			if (this.clientCached.get(this.apiKey)) return this.clientCached.get(this.apiKey);
+			const client = new BluefinClient(
+				true,
+				Networks.PRODUCTION_SUI,
+				'0x' + this.secret,
+				"ED25519" //valid values are ED25519 or Secp256k1
+			); //passing isTermAccepted = true for compliance and authorizarion
+			client.apiService.apiService.defaults.httpAgent = new SocksProxyAgent(this.socksProxy)
+			client.apiService.apiService.defaults.httpsAgent = new SocksProxyAgent(this.socksProxy)
+			try {
+				await client.init();
+			} catch (e) {
+				throw new ExchangeError(this.id + ' FAILED_TO_INITIALIZE_CLIENT')
+			}
+			this.clientCached.set(this.apiKey, client);
+			setTimeout(() => {
+				this.clientCached.delete(this.apiKey);
+			}, 4 * 60 * 60 * 1000);
+			return client;
+		}
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bluefin',
@@ -81,82 +133,15 @@ export default class bluefin extends Exchange {
                 'referral': 'https://bluefin-exchange.readme.io/',
                 'logo': '',
                 'api': {
-                    'public': 'https://api.luno.com/api',
-                    'private': 'https://api.luno.com/api',
-                    'exchange': 'https://api.luno.com/api/exchange',
-                    'exchangePrivate': 'https://api.luno.com/api/exchange',
+                    'public': 'https://dapi.api.sui-prod.bluefin.io',
+                    'private': 'https://dapi.api.sui-prod.bluefin.io'
                 },
-                'www': 'https://www.luno.com',
+                'www': 'https://bluefin-exchange.readme.io/reference/introduction',
                 'doc': [
-                    'https://www.luno.com/en/api',
-                    'https://npmjs.org/package/bitx',
-                    'https://github.com/bausmeier/node-bitx',
+                    'https://bluefin-exchange.readme.io/reference/introduction'
                 ],
             },
             'api': {
-                'exchange': {
-                    'get': {
-                        'markets': 1,
-                    },
-                },
-                'exchangePrivate': {
-                    'get': {
-                        'candles': 1,
-                    },
-                },
-                'public': {
-                    'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
-                    },
-                },
-                'private': {
-                    'get': {
-                        'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
-                        'beneficiaries': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
-                        'transfers': 1,
-                        // GET /api/exchange/1/move
-                        // GET /api/exchange/1/move/list_moves
-                        // GET /api/exchange/1/candles
-                        // GET /api/exchange/1/transfers
-                        // GET /api/exchange/2/listorders
-                        // GET /api/exchange/2/orders/{id}
-                        // GET /api/exchange/3/order
-                    },
-                    'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
-                        'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
-                        'send': 1,
-                        'oauth2/grant': 1,
-                        'beneficiaries': 1,
-                        // POST /api/exchange/1/move
-                    },
-                    'put': {
-                        'accounts/{id}/name': 1,
-                    },
-                    'delete': {
-                        'withdrawals/{id}': 1,
-                        'beneficiaries/{id}': 1,
-                    },
-                },
             },
             'timeframes': {
                 '1m': 60,
@@ -172,963 +157,182 @@ export default class bluefin extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': true, // based on volume from your primary currency (not the same for everyone)
+                    'tierBased': false, // based on volume from your primary currency (not the same for everyone)
                     'percentage': true,
-                    'taker': this.parseNumber ('0.001'),
-                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0.0003'),
+                    'maker': this.parseNumber ('0.0003'),
                 },
             },
-            'precisionMode': TICK_SIZE,
+						'requiredCredentials': {
+							'apiKey': true,
+							'secret': true,
+						},
+            'precisionMode': 4//TICK_SIZE,
         });
     }
 
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * @method
-         * @name luno#fetchMarkets
-         * @description retrieves data on all markets for luno
-         * @see https://www.luno.com/en/developers/api#tag/Market/operation/Markets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
-        const response = await this.exchangeGetMarkets (params);
-        //
-        //     {
-        //         "markets":[
-        //             {
-        //                 "market_id":"BCHXBT",
-        //                 "trading_status":"ACTIVE",
-        //                 "base_currency":"BCH",
-        //                 "counter_currency":"XBT",
-        //                 "min_volume":"0.01",
-        //                 "max_volume":"100.00",
-        //                 "volume_scale":2,
-        //                 "min_price":"0.0001",
-        //                 "max_price":"1.00",
-        //                 "price_scale":6,
-        //                 "fee_scale":8,
-        //             },
-        //         ]
-        //     }
-        //
-        const result = [];
-        const markets = this.safeValue (response, 'markets', []);
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'market_id');
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'counter_currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const status = this.safeString (market, 'trading_status');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'ACTIVE'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'volume_scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'min_volume'),
-                        'max': this.safeNumber (market, 'max_volume'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'min_price'),
-                        'max': this.safeNumber (market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+    async fetchAccounts (): Promise<Account[]> {
+			await this.initSigningKey()
+			const res = await this.request('/account', 'private', 'GET', undefined, undefined)
+			return [res]
     }
 
-    async fetchAccounts (params = {}): Promise<Account[]> {
-        /**
-         * @method
-         * @name luno#fetchAccounts
-         * @description fetch all the accounts associated with a profile
-         * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-         */
-        const response = await this.privateGetBalance (params);
-        const wallets = this.safeValue (response, 'balance', []);
-        const result = [];
-        for (let i = 0; i < wallets.length; i++) {
-            const account = wallets[i];
-            const accountId = this.safeString (account, 'account_id');
-            const currencyId = this.safeString (account, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            result.push ({
-                'id': accountId,
-                'type': undefined,
-                'currency': code,
-                'info': account,
-            });
-        }
-        return result;
-    }
-
-    async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name luno#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
-        //
-        //     {
-        //         "balance": [
-        //             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00',"unconfirmed": "0.00"},
-        //             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00',"unconfirmed": "0.00"},
-        //             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00',"unconfirmed": "0.00"},
-        //             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00',"unconfirmed": "0.00"}]}
-        //         ]
-        //     }
-        //
-        return this.parseBalance (response);
+    async fetchBalance (): Promise<Balances> {
+				await this.initSigningKey()
+				const res = await this.request('/account', 'private', 'GET', undefined, undefined)
+				//@ts-ignore
+        return {
+					'info':  res,
+					'timestamp': +res.updateTimeInMs, // Unix Timestamp in milliseconds (seconds * 1000)
+					'USDC': {
+							free: +formatUnits(res.freeCollateral, 18),
+							total: +formatUnits(res.walletBalance, 18),
+							used: 0
+						}
+				}
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name luno#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull
-         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'pair': market['id'],
-        };
-        let response = undefined;
-        if (limit !== undefined && limit <= 100) {
-            response = await this.publicGetOrderbookTop (this.extend (request, params));
-        } else {
-            response = await this.publicGetOrderbook (this.extend (request, params));
-        }
-        const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
+			let targetSymbol = symbol.split('/')[0];
+			const res = await this.request(`/orderbook?symbol=${targetSymbol}-PERP&limit=${limit || 2}`, 'public', 'GET')
+				// @ts-ignore
+        return {
+					// @ts-ignore
+					asks: res.asks.map(item => {
+						return [+formatUnits(item[0], 18), +formatUnits(item[1], 18)]
+					}),
+					// @ts-ignore
+					bids: res.bids.map(item => {
+						return [+formatUnits(item[0], 18), +formatUnits(item[1], 18)]
+					}),
+					datetime: res.lastUpdatedAt,
+					timestamp: res.lastUpdatedAt,
+					// nonce: Int
+					symbol
+				};
     }
 
-    parseOrderStatus (status: Str) {
-        const statuses: Dict = {
-            // todo add other statuses
-            'PENDING': 'open',
-        };
-        return this.safeString (statuses, status, status);
-    }
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+			const client = await this.getPrivateClient();
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
-        //
-        //     {
-        //         "base": "string",
-        //         "completed_timestamp": "string",
-        //         "counter": "string",
-        //         "creation_timestamp": "string",
-        //         "expiration_timestamp": "string",
-        //         "fee_base": "string",
-        //         "fee_counter": "string",
-        //         "limit_price": "string",
-        //         "limit_volume": "string",
-        //         "order_id": "string",
-        //         "pair": "string",
-        //         "state": "PENDING",
-        //         "type": "BID"
-        //     }
-        //
-        const timestamp = this.safeInteger (order, 'creation_timestamp');
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        status = (status === 'open') ? status : status;
-        let side = undefined;
-        const orderType = this.safeString (order, 'type');
-        if ((orderType === 'ASK') || (orderType === 'SELL')) {
-            side = 'sell';
-        } else if ((orderType === 'BID') || (orderType === 'BUY')) {
-            side = 'buy';
-        }
-        const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
-        const price = this.safeString (order, 'limit_price');
-        const amount = this.safeString (order, 'limit_volume');
-        const quoteFee = this.safeNumber (order, 'fee_counter');
-        const baseFee = this.safeNumber (order, 'fee_base');
-        const filled = this.safeString (order, 'base');
-        const cost = this.safeString (order, 'counter');
-        let fee = undefined;
-        if (quoteFee !== undefined) {
-            fee = {
-                'cost': quoteFee,
-                'currency': market['quote'],
-            };
-        } else if (baseFee !== undefined) {
-            fee = {
-                'cost': baseFee,
-                'currency': market['base'],
-            };
-        }
-        const id = this.safeString (order, 'order_id');
-        return this.safeOrder ({
-            'id': id,
-            'clientOrderId': undefined,
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': market['symbol'],
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': amount,
-            'filled': filled,
-            'cost': cost,
-            'remaining': undefined,
-            'trades': undefined,
-            'fee': fee,
-            'info': order,
-            'average': undefined,
-        }, market);
+			const res = await client.getUserOrders({
+				orderId: id, statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED",
+					"REJECTED", "STAND_BY", "PENDING"
+				]
+			})
+			return this.parseOrderData(res.data[0])
     }
-
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name luno#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
-         * @param {string} symbol not used by luno fetchOrder
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const request: Dict = {
-            'id': id,
-        };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
-        return this.parseOrder (response);
-    }
-
-    async fetchOrdersByState (state = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request: Dict = {};
-        let market = undefined;
-        if (state !== undefined) {
-            request['state'] = state;
-        }
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        const response = await this.privateGetListorders (this.extend (request, params));
-        const orders = this.safeList (response, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
-    }
-
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name luno#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        return await this.fetchOrdersByState (undefined, symbol, since, limit, params);
-    }
-
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name luno#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        return await this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
-    }
-
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name luno#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        return await this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
-    }
-
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        // {
-        //     "pair":"XBTAUD",
-        //     "timestamp":1642201439301,
-        //     "bid":"59972.30000000",
-        //     "ask":"59997.99000000",
-        //     "last_trade":"59997.99000000",
-        //     "rolling_24_hour_volume":"1.89510000",
-        //     "status":"ACTIVE"
-        // }
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const marketId = this.safeString (ticker, 'pair');
-        const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString (ticker, 'last_trade');
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': this.safeString (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeString (ticker, 'rolling_24_hour_volume'),
-            'quoteVolume': undefined,
-            'info': ticker,
-        }, market);
-    }
-
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name luno#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetTickers (params);
-        const tickers = this.indexBy (response['tickers'], 'pair');
-        const ids = Object.keys (tickers);
-        const result: Dict = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            const ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
-        }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
-    }
-
+		parseOrderData(orderData: any): Order {
+			// @ts-ignore
+			return {
+				id: orderData.id,
+				info: orderData,
+				clientOrderId: orderData.clientId,
+				timestamp: orderData.createdAt,
+				datetime: orderData.updatedAt,
+				status: this.parseOrderStatus(orderData.orderStatus),
+				lastTradeTimestamp: orderData.updatedAt,
+				symbol: orderData.symbol.split('-')[0] + '/USDT:USDT',
+				type: orderData.orderType.toLowerCase(),
+				side: orderData.side.toLowerCase(),
+				price: +formatUnits(orderData.price, 18),
+				average:  +formatUnits(orderData.avgFillPrice, 18),
+				amount: +formatUnits(orderData.quantity, 18),
+				filled: +formatUnits(orderData.filledQty, 18),
+				remaining: new BigNumber(formatUnits(orderData.quantity, 18)).minus(formatUnits(orderData.filledQty, 18)).toNumber(),
+				triggerPrice: +formatUnits(orderData.triggerPrice, 18),
+				reduceOnly: orderData.reduceOnly,
+    		postOnly: orderData.postOnly,
+				cost: new BigNumber(formatUnits(orderData.filledQty, 18)).multipliedBy(formatUnits(orderData.avgFillPrice, 18)).toNumber(),
+			}
+		}
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name luno#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'pair': market['id'],
-        };
-        const response = await this.publicGetTicker (this.extend (request, params));
-        // {
-        //     "pair":"XBTAUD",
-        //     "timestamp":1642201439301,
-        //     "bid":"59972.30000000",
-        //     "ask":"59997.99000000",
-        //     "last_trade":"59997.99000000",
-        //     "rolling_24_hour_volume":"1.89510000",
-        //     "status":"ACTIVE"
-        // }
-        return this.parseTicker (response, market);
-    }
-
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
-        //
-        // fetchTrades (public)
-        //
-        //      {
-        //          "sequence":276989,
-        //          "timestamp":1648651276949,
-        //          "price":"35773.20000000",
-        //          "volume":"0.00300000",
-        //          "is_buy":false
-        //      }
-        //
-        // fetchMyTrades (private)
-        //
-        //      {
-        //          "pair":"LTCXBT",
-        //          "sequence":3256813,
-        //          "order_id":"BXEX6XHHDT5EGW2",
-        //          "type":"ASK",
-        //          "timestamp":1648652135235,
-        //          "price":"0.002786",
-        //          "volume":"0.10",
-        //          "base":"0.10",
-        //          "counter":"0.0002786",
-        //          "fee_base":"0.0001",
-        //          "fee_counter":"0.00",
-        //          "is_buy":false,
-        //          "client_order_id":""
-        //      }
-        //
-        // For public trade data (is_buy === True) indicates 'buy' side but for private trade data
-        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
-        // Private trade data includes ID field which public trade data does not.
-        const orderId = this.safeString (trade, 'order_id');
-        const id = this.safeString (trade, 'sequence');
-        let takerOrMaker = undefined;
-        let side = undefined;
-        if (orderId !== undefined) {
-            const type = this.safeString (trade, 'type');
-            if ((type === 'ASK') || (type === 'SELL')) {
-                side = 'sell';
-            } else if ((type === 'BID') || (type === 'BUY')) {
-                side = 'buy';
-            }
-            if (side === 'sell' && trade['is_buy']) {
-                takerOrMaker = 'maker';
-            } else if (side === 'buy' && !trade['is_buy']) {
-                takerOrMaker = 'maker';
-            } else {
-                takerOrMaker = 'taker';
-            }
-        } else {
-            side = trade['is_buy'] ? 'buy' : 'sell';
-        }
-        const feeBaseString = this.safeString (trade, 'fee_base');
-        const feeCounterString = this.safeString (trade, 'fee_counter');
-        let feeCurrency = undefined;
-        let feeCost = undefined;
-        if (feeBaseString !== undefined) {
-            if (!Precise.stringEquals (feeBaseString, '0.0')) {
-                feeCurrency = market['base'];
-                feeCost = feeBaseString;
-            }
-        } else if (feeCounterString !== undefined) {
-            if (!Precise.stringEquals (feeCounterString, '0.0')) {
-                feeCurrency = market['quote'];
-                feeCost = feeCounterString;
-            }
-        }
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        return this.safeTrade ({
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': orderId,
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString2 (trade, 'volume', 'base'),
-            // Does not include potential fee costs
-            'cost': this.safeString (trade, 'counter'),
-            'fee': {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            },
-        }, market);
-    }
-
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name luno#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'pair': market['id'],
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        const response = await this.publicGetTrades (this.extend (request, params));
-        //
-        //      {
-        //          "trades":[
-        //              {
-        //                  "sequence":276989,
-        //                  "timestamp":1648651276949,
-        //                  "price":"35773.20000000",
-        //                  "volume":"0.00300000",
-        //                  "is_buy":false
-        //              },...
-        //          ]
-        //      }
-        //
-        const trades = this.safeList (response, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name luno#fetchOHLCV
-         * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'duration': this.safeValue (this.timeframes, timeframe, timeframe),
-            'pair': market['id'],
-        };
-        if (since !== undefined) {
-            request['since'] = this.parseToInt (since);
-        } else {
-            const duration = 1000 * 1000 * this.parseTimeframe (timeframe);
-            request['since'] = this.milliseconds () - duration;
-        }
-        const response = await this.exchangePrivateGetCandles (this.extend (request, params));
-        //
-        //     {
-        //          "candles": [
-        //              {
-        //                  "timestamp": 1664055240000,
-        //                  "open": "19612.65",
-        //                  "close": "19612.65",
-        //                  "high": "19612.65",
-        //                  "low": "19612.65",
-        //                  "volume": "0.00"
-        //              },...
-        //          ],
-        //          "duration": 60,
-        //          "pair": "XBTEUR"
-        //     }
-        //
-        const ohlcvs = this.safeList (response, 'candles', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    }
-
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        // {
-        //     "timestamp": 1664055240000,
-        //     "open": "19612.65",
-        //     "close": "19612.65",
-        //     "high": "19612.65",
-        //     "low": "19612.65",
-        //     "volume": "0.00"
-        // }
-        return [
-            this.safeInteger (ohlcv, 'timestamp'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
-        ];
-    }
-
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name luno#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'pair': market['id'],
-        };
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privateGetListtrades (this.extend (request, params));
-        //
-        //      {
-        //          "trades":[
-        //              {
-        //                  "pair":"LTCXBT",
-        //                  "sequence":3256813,
-        //                  "order_id":"BXEX6XHHDT5EGW2",
-        //                  "type":"ASK",
-        //                  "timestamp":1648652135235,
-        //                  "price":"0.002786",
-        //                  "volume":"0.10",
-        //                  "base":"0.10",
-        //                  "counter":"0.0002786",
-        //                  "fee_base":"0.0001",
-        //                  "fee_counter":"0.00",
-        //                  "is_buy":false,
-        //                  "client_order_id":""
-        //              },...
-        //          ]
-        //      }
-        //
-        const trades = this.safeList (response, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        /**
-         * @method
-         * @name luno#fetchTradingFee
-         * @description fetch the trading fees for a market
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'pair': market['id'],
-        };
-        const response = await this.privateGetFeeInfo (this.extend (request, params));
-        //
-        //     {
-        //          "maker_fee": "0.00250000",
-        //          "taker_fee": "0.00500000",
-        //          "thirty_day_volume": "0"
-        //     }
-        //
+			let targetSymbol = symbol.split('/')[0];
+			const res = await this.request(`/marketData?symbol=${targetSymbol}-PERP`, 'public', 'GET')
+				// @ts-ignore
         return {
-            'info': response,
-            'symbol': symbol,
-            'maker': this.safeNumber (response, 'maker_fee'),
-            'taker': this.safeNumber (response, 'taker_fee'),
-            'percentage': undefined,
-            'tierBased': undefined,
-        };
+					symbol,
+					timestamp: res.lastTime,
+					last: +formatUnits(res.lastPrice,18),
+					high: +formatUnits(res._24hrHighPrice,18),
+					low: +formatUnits(res._24hrLowPrice,18),
+					info: res
+				};
+    }
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+			let targetSymbol = symbol.split('/')[0];
+			const res = await this.request(`/candlestickData?symbol=${targetSymbol}-PERP&interval=${timeframe}&limit=${limit || 20}`, 'public', 'GET')
+				// @ts-ignore
+        return res.map(ohlcv => {
+					return [
+						ohlcv[0],
+						+formatUnits(ohlcv[1], 18),
+						+formatUnits(ohlcv[2], 18),
+						+formatUnits(ohlcv[3], 18),
+						+formatUnits(ohlcv[4], 18),
+						+formatUnits(ohlcv[5], 18),
+					]
+				})
+    }
+		parseOrderStatus (status: string) {
+			// 'open', 'closed', 'canceled', 'expired', 'rejected'
+			const mapper: Record<string, string> = {
+				OPEN: 'open',//(not filled or partially filled)
+				CANCELLED: 'canceled',
+				EXPIRED: "expired",
+				REJECTED: "rejected",
+				FILLED: "closed"
+			}
+			return mapper[status] || status
+		}
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+			let targetSymbol = symbol.split('/')[0] + '-PERP';
+			const orderParams = {
+				symbol: targetSymbol,
+				price: price || 0,
+				side: side.toUpperCase(),
+				quantity: amount,
+				orderType: type.toUpperCase(),
+				leverage: 5,
+			}
+			const client = await this.getPrivateClient();
+			const res = await client.postOrder(orderParams);
+			// @ts-ignore
+			return this.parseOrderData(res.data)
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name luno#createOrder
-         * @description create a trade order
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'pair': market['id'],
-        };
-        let response = undefined;
-        if (type === 'market') {
-            request['type'] = side.toUpperCase ();
-            // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
-            if (side === 'buy') {
-                request['counter_volume'] = this.amountToPrecision (market['symbol'], amount);
-            } else {
-                request['base_volume'] = this.amountToPrecision (market['symbol'], amount);
-            }
-            response = await this.privatePostMarketorder (this.extend (request, params));
-        } else {
-            request['volume'] = this.amountToPrecision (market['symbol'], amount);
-            request['price'] = this.priceToPrecision (market['symbol'], price);
-            request['type'] = (side === 'buy') ? 'BID' : 'ASK';
-            response = await this.privatePostPostorder (this.extend (request, params));
-        }
-        return this.safeOrder ({
-            'info': response,
-            'id': response['order_id'],
-        }, market);
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+			if (!symbol) throw new ArgumentsRequired(this.id + 'cancelOrder require symbol')
+			let targetSymbol = symbol.split('/')[0] + '-PERP';
+			const client = await this.getPrivateClient();
+			const res = await client.postCancelOrder({
+				// @ts-ignore
+				hashes: [params.orderHash],
+				symbol: targetSymbol
+			})
+			if (!res.data.ok) throw new Error(res.response.message)
+			// @ts-ignore
+			return {
+				info: res.data.data,
+				id
+			}
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name luno#cancelOrder
-         * @description cancels an open order
-         * @see https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const request: Dict = {
-            'order_id': id,
-        };
-        const response = await this.privatePostStoporder (this.extend (request, params));
-        //
-        //    {
-        //        "success": true
-        //    }
-        //
-        return this.safeOrder ({
-            'info': response,
-        });
-    }
-
-    async fetchLedgerByEntries (code: Str = undefined, entry = undefined, limit = undefined, params = {}) {
-        // by default without entry number or limit number, return most recent entry
-        if (entry === undefined) {
-            entry = -1;
-        }
-        if (limit === undefined) {
-            limit = 1;
-        }
-        const since = undefined;
-        const request: Dict = {
-            'min_row': entry,
-            'max_row': this.sum (entry, limit),
-        };
-        return await this.fetchLedger (code, since, limit, this.extend (request, params));
-    }
-
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        /**
-         * @method
-         * @name luno#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
-         * @param {string} [code] unified currency code, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entries to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        let currency = undefined;
-        let id = this.safeString (params, 'id'); // account id
-        let min_row = this.safeValue (params, 'min_row');
-        let max_row = this.safeValue (params, 'max_row');
-        if (id === undefined) {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');
-            }
-            currency = this.currency (code);
-            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
-            const account = this.safeValue (accountsByCurrencyCode, code);
-            if (account === undefined) {
-                throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
-            }
-            id = account['id'];
-        }
-        if (min_row === undefined && max_row === undefined) {
-            max_row = 0; // Default to most recent transactions
-            min_row = -1000; // Maximum number of records supported
-        } else if (min_row === undefined || max_row === undefined) {
-            throw new ExchangeError (this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
-        }
-        if (limit !== undefined && max_row - min_row > limit) {
-            if (max_row <= 0) {
-                min_row = max_row - limit;
-            } else if (min_row > 0) {
-                max_row = min_row + limit;
-            }
-        }
-        if (max_row - min_row > 1000) {
-            throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
-        }
-        const request: Dict = {
-            'id': id,
-            'min_row': min_row,
-            'max_row': max_row,
-        };
-        const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
-        const entries = this.safeValue (response, 'transactions', []);
-        return this.parseLedger (entries, currency, since, limit);
-    }
-
-    parseLedgerComment (comment) {
-        const words = comment.split (' ');
-        const types: Dict = {
-            'Withdrawal': 'fee',
-            'Trading': 'fee',
-            'Payment': 'transaction',
-            'Sent': 'transaction',
-            'Deposit': 'transaction',
-            'Received': 'transaction',
-            'Released': 'released',
-            'Reserved': 'reserved',
-            'Sold': 'trade',
-            'Bought': 'trade',
-            'Failure': 'failed',
-        };
-        let referenceId = undefined;
-        const firstWord = this.safeString (words, 0);
-        const thirdWord = this.safeString (words, 2);
-        const fourthWord = this.safeString (words, 3);
-        let type = this.safeString (types, firstWord, undefined);
-        if ((type === undefined) && (thirdWord === 'fee')) {
-            type = 'fee';
-        }
-        if ((type === 'reserved') && (fourthWord === 'order')) {
-            referenceId = this.safeString (words, 4);
-        }
-        return {
-            'type': type,
-            'referenceId': referenceId,
-        };
-    }
-
-    parseLedgerEntry (entry, currency: Currency = undefined): LedgerEntry {
-        // const details = this.safeValue (entry, 'details', {});
-        const id = this.safeString (entry, 'row_index');
-        const account_id = this.safeString (entry, 'account_id');
-        const timestamp = this.safeInteger (entry, 'timestamp');
-        const currencyId = this.safeString (entry, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
-        const available_delta = this.safeString (entry, 'available_delta');
-        const balance_delta = this.safeString (entry, 'balance_delta');
-        const after = this.safeString (entry, 'balance');
-        const comment = this.safeString (entry, 'description');
-        let before = after;
-        let amount = '0.0';
-        const result = this.parseLedgerComment (comment);
-        const type = result['type'];
-        const referenceId = result['referenceId'];
-        let direction = undefined;
-        let status = undefined;
-        if (!Precise.stringEquals (balance_delta, '0.0')) {
-            before = Precise.stringSub (after, balance_delta);
-            status = 'ok';
-            amount = Precise.stringAbs (balance_delta);
-        } else if (Precise.stringLt (available_delta, '0.0')) {
-            status = 'pending';
-            amount = Precise.stringAbs (available_delta);
-        } else if (Precise.stringGt (available_delta, '0.0')) {
-            status = 'canceled';
-            amount = Precise.stringAbs (available_delta);
-        }
-        if (Precise.stringGt (balance_delta, '0') || Precise.stringGt (available_delta, '0')) {
-            direction = 'in';
-        } else if (Precise.stringLt (balance_delta, '0') || Precise.stringLt (available_delta, '0')) {
-            direction = 'out';
-        }
-        return this.safeLedgerEntry ({
-            'info': entry,
-            'id': id,
-            'direction': direction,
-            'account': account_id,
-            'referenceId': referenceId,
-            'referenceAccount': undefined,
-            'type': type,
-            'currency': code,
-            'amount': this.parseToNumeric (amount),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'before': this.parseToNumeric (before),
-            'after': this.parseToNumeric (after),
-            'status': status,
-            'fee': undefined,
-        }, currency) as LedgerEntry;
-    }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
-        }
-        if ((api === 'private') || (api === 'exchangePrivate')) {
+    sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = 'https://dapi.api.sui-prod.bluefin.io' + path;
+        if ((api === 'private')) {
             this.checkRequiredCredentials ();
-            const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
-            headers = {
-                'Authorization': 'Basic ' + auth,
+						// @ts-ignore
+						headers = {
+							'Authorization': 'Bearer ' + this.getSigningKey(this.apiKey),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (response === undefined) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response:any, requestHeaders: any, requestBody: any) {
+      // console.log(httpCode, reason, url, method, response)
+			if (response === undefined) {
             return undefined;
         }
         const error = this.safeValue (response, 'error');

@@ -4,7 +4,7 @@ import type {
 	INodeProperties,
 	IExecuteFunctions,
 } from 'n8n-workflow';
-import exchanges from '../../helpers/exchanges';
+import exchanges from '../../exchanges';
 
 import {
 	updateDisplayOptions,

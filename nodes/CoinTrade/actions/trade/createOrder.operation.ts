@@ -5,12 +5,20 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import exchanges from '../../helpers/exchanges';
+import exchanges from '../../exchanges';
 
 import {
 	updateDisplayOptions,
 } from '../../../../utils/utilities';
-
+function validateJSON(json: string | undefined): object {
+	let result;
+	try {
+		result = JSON.parse(json!);
+	} catch (exception) {
+		result = {};
+	}
+	return result;
+}
 
 const properties: INodeProperties[] = [
 	{
@@ -78,12 +86,20 @@ const properties: INodeProperties[] = [
 		name: 'price',
 		type: "number",
 		default: undefined,
-
 		displayOptions: {
 			show: {
 				type: ['limit']
 			}
 		}
+	},
+	{
+		displayName: 'Params',
+		name: 'params',
+		type: 'json',
+		typeOptions: {
+			alwaysOpenEditWindow: true,
+		},
+		default: ''
 	}
 ];
 
@@ -109,6 +125,8 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const platform = this.getNodeParameter('platform', i) as string;
 			const exchange = exchanges.get(platform)
 			const proxy = this.getNodeParameter('proxy', i) as string;
+			const params = validateJSON(this.getNodeParameter('params', i) as string);
+
 			exchanges.setProxy(exchange, proxy);
 			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
@@ -159,7 +177,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0)));
 
 
-			const responseData = await exchange.createOrder(symbol, type, side, amount, price)
+			const responseData = await exchange.createOrder(symbol, type, side, amount, price, params || {})
 
 			exchanges.clearKeys(exchange);
 			const executionData = this.helpers.constructExecutionMetaData(

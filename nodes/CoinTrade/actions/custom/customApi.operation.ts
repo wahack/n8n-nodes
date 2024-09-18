@@ -5,7 +5,7 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import {request} from '../../helpers/request';
+import {request} from '../../exchanges/request';
 
 import {
 	updateDisplayOptions,

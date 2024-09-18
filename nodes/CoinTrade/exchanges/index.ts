@@ -1,5 +1,4 @@
-import * as ccxt from 'ccxt';
-import '../exchanges'
+import ccxt from './custom';
 class Exchanges {
 	exchanges: Map<string, ccxt.Exchange>;
   constructor() {

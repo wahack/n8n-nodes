@@ -4,7 +4,6 @@ import type {
 	INodeProperties,
 	IExecuteFunctions,
 } from 'n8n-workflow';
-
 import exchanges from '../../exchanges';
 
 import {
@@ -14,46 +13,36 @@ import {
 
 const properties: INodeProperties[] = [
 	{
-		displayName: '币种',
-		name: 'coin',
+		displayName: 'Symbol',
+		name: 'symbol',
 		type: 'string',
-		default: '',
-		placeholder: 'BTC,USDT,ETH',
+		default: 'BTC/USDT',
 		required: true,
-	},{
-		displayName: '数量',
-		name: 'amount',
+	},
+	{
+		displayName: 'Timeframe',
+		name: 'timeframe',
+		type: 'string',
+		default: '1h',
+		description: '1m, 15m, 30m, 1h, 4h, 1d, 1w',
+		required: true,
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: '',
-		required: true,
+		typeOptions: {
+			minValue: 1,
+		},
+		description: 'Max number of results to return',
+		default: 50
 	},
-	{
-		displayName: '地址',
-		name: 'address',
-		type: 'string',
-		default: '',
-
-	},
-	{
-		displayName: '网络',
-		name: 'network',
-		type: 'string',
-		default: '',
-		placeholder: "ERC20,TRC20,BEP20,BEP2",
-
-	},{
-		displayName: 'Tag',
-		name: 'tag',
-		type: "string",
-		placeholder: "标签",
-		default: '',
-	}
 ];
 
 const displayOptions = {
 	show: {
-		resource: ['fund'],
-		operation: ['withdraw'],
+		resource: ['market'],
+		operation: ['fetchOHLCV'],
 	},
 };
 
@@ -64,7 +53,6 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	const returnData: INodeExecutionData[] = [];
 	const length = items.length;
 
-	const credentials = await this.getCredentials('coinTradeApi');
 
 	for (let i = 0; i < length; i++) {
 		try {
@@ -73,19 +61,11 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const proxy = this.getNodeParameter('proxy', i) as string;
 			exchanges.setProxy(exchange, proxy);
 
-			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
+			const symbol = this.getNodeParameter('symbol', i) as string;
+			const timeframe = this.getNodeParameter('timeframe', i) as string;
+			const limit = this.getNodeParameter('limit', i) as number;
 
-
-
-			const coin = this.getNodeParameter('coin', i) as string;
-			const address = this.getNodeParameter('address', i) as string;
-			const amount = this.getNodeParameter('amount', i) as number;
-			const network = this.getNodeParameter('network', i) as string;
-			const tag = this.getNodeParameter('tag', i) as string;
-
-			const responseData = await exchange.withdraw(coin, amount, address, tag, {network})
-
-			exchanges.clearKeys(exchange);
+			const responseData = await exchange.fetchOHLCV(symbol, timeframe, undefined, limit)
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
@@ -104,6 +84,5 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			throw error;
 		}
 	}
-
 	return returnData;
 }

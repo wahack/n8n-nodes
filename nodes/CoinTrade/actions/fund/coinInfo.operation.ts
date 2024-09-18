@@ -5,7 +5,7 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import {getRequest} from '../../helpers/binance';
+import {getRequest} from '../../exchanges/binance';
 
 import {
 	updateDisplayOptions,

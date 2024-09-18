@@ -14,51 +14,47 @@ import {
 
 const properties: INodeProperties[] = [
 	{
-		displayName: '币种',
-		name: 'coin',
+		displayName: 'OrderId',
+		name: 'orderId',
 		type: 'string',
 		default: '',
-		placeholder: 'BTC,USDT,ETH',
-		required: true,
-	},{
-		displayName: '数量',
-		name: 'amount',
-		type: 'number',
-		default: '',
-		required: true,
 	},
 	{
-		displayName: '地址',
-		name: 'address',
+		displayName: 'Symbol',
+		name: 'symbol',
 		type: 'string',
 		default: '',
-
+		placeholder: '格式: 现货BTC/USDT, usdt永续BTC/USDT:USDT,币本位永续ETH/USD:ETH',
+		description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USD:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
 	},
 	{
-		displayName: '网络',
-		name: 'network',
-		type: 'string',
-		default: '',
-		placeholder: "ERC20,TRC20,BEP20,BEP2",
-
-	},{
-		displayName: 'Tag',
-		name: 'tag',
-		type: "string",
-		placeholder: "标签",
-		default: '',
+		displayName: 'Params',
+		name: 'params',
+		type: 'json',
+		typeOptions: {
+			alwaysOpenEditWindow: true,
+		},
+		default: ''
 	}
 ];
 
 const displayOptions = {
 	show: {
-		resource: ['fund'],
-		operation: ['withdraw'],
+		resource: ['trade'],
+		operation: ['cancelOrder'],
 	},
 };
 
 export const description = updateDisplayOptions(displayOptions, properties);
-
+function validateJSON(json: string | undefined): object {
+	let result;
+	try {
+		result = JSON.parse(json!);
+	} catch (exception) {
+		result = {};
+	}
+	return result;
+}
 export async function execute(this: IExecuteFunctions): Promise<INodeExecutionData[]> {
 	const items = this.getInputData();
 	const returnData: INodeExecutionData[] = [];
@@ -66,27 +62,22 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 
 	const credentials = await this.getCredentials('coinTradeApi');
 
+
 	for (let i = 0; i < length; i++) {
 		try {
 			const platform = this.getNodeParameter('platform', i) as string;
 			const exchange = exchanges.get(platform)
 			const proxy = this.getNodeParameter('proxy', i) as string;
 			exchanges.setProxy(exchange, proxy);
-
 			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
+			const symbol = (this.getNodeParameter('symbol', i) as string);
+			const orderId = (this.getNodeParameter('orderId', i) as string).trim().toUpperCase();
+			const params = validateJSON(this.getNodeParameter('params', i) as string);
 
-
-			const coin = this.getNodeParameter('coin', i) as string;
-			const address = this.getNodeParameter('address', i) as string;
-			const amount = this.getNodeParameter('amount', i) as number;
-			const network = this.getNodeParameter('network', i) as string;
-			const tag = this.getNodeParameter('tag', i) as string;
-
-			const responseData = await exchange.withdraw(coin, amount, address, tag, {network})
+			const responseData = await exchange.cancelOrder(orderId, symbol, params || {})
 
 			exchanges.clearKeys(exchange);
-
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
 				// @ts-ignore

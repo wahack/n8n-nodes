@@ -8,7 +8,7 @@ import type {
 } from 'n8n-workflow';
 import moment from 'moment-timezone';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
-import exchanges from './helpers/exchanges';
+import exchanges from './exchanges';
 
 export class CoinTradeTrigger implements INodeType {
 	description: INodeTypeDescription = {

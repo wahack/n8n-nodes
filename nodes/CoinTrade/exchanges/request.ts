@@ -1,4 +1,4 @@
-import exchanges from './exchanges';
+import exchanges from '.';
 import {request as bianRequest} from './binance'
 
 export async function request (platform:string, apiKey: string, secret: string, password: string, proxy: string,  path: string,method: string, data: any) {
@@ -24,5 +24,7 @@ export async function request (platform:string, apiKey: string, secret: string, 
 		exchanges.clearKeys(exchange);
 		return res;
 	}
+	return await exchange.request(path, 'private', method.toUpperCase(), data);
+
 
 }

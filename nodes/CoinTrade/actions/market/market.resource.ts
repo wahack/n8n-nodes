@@ -2,8 +2,9 @@ import type { INodeProperties } from 'n8n-workflow';
 
 import * as fetchTicker from './fetchTicker.operation';
 import * as fetchOrderBook from './fetchOrderBook.operation';
+import * as fetchOHLCV from './fetchOHLCV.operation';
 
-export { fetchTicker, fetchOrderBook };
+export { fetchTicker, fetchOrderBook, fetchOHLCV };
 
 export const description: INodeProperties[] = [
 	{
@@ -24,6 +25,12 @@ export const description: INodeProperties[] = [
 				description: 'Fetch L2/L3 order book for a particular market trading symbol',
 				action: 'Fetch order book',
 			},
+			{
+				name: 'Fetch OHLCV',
+				value: 'fetchOHLCV',
+				description: 'Fetch OHLCV Candlestick Charts',
+				action: 'Fetch OHLCV',
+			}
 		],
 		default: 'fetchTicker',
 		displayOptions: {
@@ -33,5 +40,6 @@ export const description: INodeProperties[] = [
 		},
 	},
 	...fetchTicker.description,
-	...fetchOrderBook.description
+	...fetchOrderBook.description,
+	...fetchOHLCV.description
 ];
