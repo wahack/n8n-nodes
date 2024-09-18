@@ -30,6 +30,10 @@ export class CoinTradeApi implements ICredentialType {
 				},{
 					name: 'gate',
 					value: 'gate'
+				},
+				{
+					name: 'bluefin',
+					value: 'bluefin'
 				}
 			]
 		},

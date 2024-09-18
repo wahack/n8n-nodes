@@ -59,6 +59,10 @@ export const description: INodeTypeDescription = {
 				{
 					name: 'Gate',
 					value: 'gate',
+				},
+				{
+					name: 'Bluefin',
+					value: 'bluefin',
 				}
 			],
 			default: 'binance',
