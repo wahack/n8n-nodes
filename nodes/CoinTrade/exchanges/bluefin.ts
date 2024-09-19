@@ -223,8 +223,11 @@ export default class bluefin extends Exchange {
 				orderId: +id, statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED","REJECTED", "STAND_BY", "PENDING", ORDER_STATUS.STAND_BY_PENDING, ORDER_STATUS.PARTIAL_FILLED]
 
 			})
-			if (!res.ok) throw new ExchangeError(this.id + 'fetchOrderError ' + id + ': ' + JSON.stringify(res.response))
-			return this.parseOrderData(res.data[0])
+			try {
+				return this.parseOrderData(res.data[0])
+			} catch (e) {
+				throw new ExchangeError(this.id + 'fetchOrderError ' + id + ': ' + JSON.stringify(res.response))
+			}
     }
 		parseOrderData(orderData: any): Order {
 			// @ts-ignore
