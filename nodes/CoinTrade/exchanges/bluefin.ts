@@ -6,7 +6,7 @@ import { formatUnits } from 'viem';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 import type { Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Ticker, OHLCV, Num, Account, Dict, int } from 'ccxt';
-import { Networks, BluefinClient } from "@bluefin-exchange/bluefin-v2-client";
+import { Networks, BluefinClient, ORDER_STATUS } from "@bluefin-exchange/bluefin-v2-client";
 
 /**
  * @class bluefin
@@ -220,15 +220,16 @@ export default class bluefin extends Exchange {
 
 			const res = await client.getUserOrders({
 				//@ts-ignore
-				orderId: +id, statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED","REJECTED", "STAND_BY", "PENDING"]
+				orderId: +id, statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED","REJECTED", "STAND_BY", "PENDING", ORDER_STATUS.STAND_BY_PENDING, ORDER_STATUS.PARTIAL_FILLED]
 
 			})
+			if (!res.ok) throw new ExchangeError(this.id + 'fetchOrderError ' + id + ': ' + JSON.stringify(res.response))
 			return this.parseOrderData(res.data[0])
     }
 		parseOrderData(orderData: any): Order {
 			// @ts-ignore
 			return {
-				id: orderData.id,
+				id: orderData.id + '',
 				info: orderData,
 				clientOrderId: orderData.clientId,
 				timestamp: orderData.createdAt,
@@ -280,6 +281,11 @@ export default class bluefin extends Exchange {
 		parseOrderStatus (status: string) {
 			// 'open', 'closed', 'canceled', 'expired', 'rejected'
 			const mapper: Record<string, string> = {
+				[ORDER_STATUS.PENDING]: 'open',
+				[ORDER_STATUS.CANCELLING]: 'open',
+				[ORDER_STATUS.PARTIAL_FILLED]: 'open',
+				[ORDER_STATUS.STAND_BY]: 'open',
+				[ORDER_STATUS.STAND_BY_PENDING]: 'open',
 				OPEN: 'open',//(not filled or partially filled)
 				CANCELLED: 'canceled',
 				EXPIRED: "expired",
@@ -301,7 +307,12 @@ export default class bluefin extends Exchange {
 			const client = await this.getPrivateClient();
 			// @ts-ignore
 			const res = await client.postOrder(orderParams);
-			return this.parseOrderData(res.data)
+			try {
+
+				return this.parseOrderData(res.data)
+			} catch (e) {
+				throw new ExchangeError(this.id + ' ' + res.response.message)
+			}
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {

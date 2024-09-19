@@ -39,7 +39,7 @@ export const description: INodeTypeDescription = {
 			displayName: '交易所',
 			name: 'platform',
 			type: 'options',
-			noDataExpression: true,
+			noDataExpression: false,
 			// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 			options: [
 				{
