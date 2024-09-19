@@ -217,13 +217,18 @@ export default class bluefin extends Exchange {
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
 			const client = await this.getPrivateClient();
-
 			const res = await client.getUserOrders({
+				orderId: +id,
 				//@ts-ignore
-				orderId: +id, statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED","REJECTED", "STAND_BY", "PENDING", ORDER_STATUS.STAND_BY_PENDING, ORDER_STATUS.PARTIAL_FILLED]
-
+				statuses: ["OPEN", "CANCELLED", "CANCELLING", "EXPIRED", "FILLED","REJECTED", "STAND_BY", "PENDING", ORDER_STATUS.STAND_BY_PENDING, ORDER_STATUS.PARTIAL_FILLED]
 			})
 			try {
+				if (res.ok && !res.data.length)
+					// @ts-ignore
+					return {
+						id,
+						status: "NOT_EXIST"
+					}
 				return this.parseOrderData(res.data[0])
 			} catch (e) {
 				throw new ExchangeError(this.id + 'fetchOrderError ' + id + ': ' + JSON.stringify(res.response))
