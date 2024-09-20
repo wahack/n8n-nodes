@@ -170,7 +170,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 				await exchange.loadMarkets();
 				const market = exchange.market(symbol);
 				if (market.contract) {
-					side = side + '_single';
+					// side = side + '_single';
 				} else { //现货
 					if (type === 'market' && side === 'buy') {
 						price = (await exchange.fetchTicker(symbol)).last

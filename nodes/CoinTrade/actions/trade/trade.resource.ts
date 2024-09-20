@@ -4,8 +4,16 @@ import * as createOrder from './createOrder.operation';
 import * as fetchOrder from './fetchOrder.operation';
 import * as cancelOrder from './cancelOrder.operation';
 import * as cancelAllOrders from './cancelAllOrders.operation';
+import * as fetchClosedOrder from './fetchClosedOrder.operation';
 
-export { createOrder, fetchOrder, cancelOrder, cancelAllOrders };
+import * as fetchClosedOrders from './fetchClosedOrders.operation';
+
+import * as fetchOpenOrder from './fetchOpenOrder.operation';
+
+import * as fetchOpenOrders from './fetchOpenOrders.operation';
+
+
+export { createOrder, fetchOrder, cancelOrder, cancelAllOrders, fetchClosedOrder, fetchClosedOrders, fetchOpenOrder, fetchOpenOrders };
 
 export const description: INodeProperties[] = [
 	{
@@ -50,5 +58,9 @@ export const description: INodeProperties[] = [
 	...createOrder.description,
 	...fetchOrder.description,
 	...cancelOrder.description,
-	...cancelAllOrders.description
+	...cancelAllOrders.description,
+	...fetchClosedOrder.description,
+	...fetchClosedOrders.description,
+	...fetchOpenOrder.description,
+	...fetchOpenOrders.description
 ];
