@@ -72,7 +72,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
 			const symbol = (this.getNodeParameter('symbol', i) as string);
-			const orderId = (this.getNodeParameter('orderId', i) as string).trim().toUpperCase();
+			const orderId = (this.getNodeParameter('orderId', i) as string).trim();
 			const params = validateJSON(this.getNodeParameter('params', i) as string);
 
 			const responseData = await exchange.fetchOrder(orderId, symbol, params || {})
