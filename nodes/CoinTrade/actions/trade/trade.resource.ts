@@ -21,6 +21,7 @@ export const description: INodeProperties[] = [
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
+		// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 		options: [
 			{
 				name: 'Create Order',
@@ -33,6 +34,30 @@ export const description: INodeProperties[] = [
 				value: 'fetchOrder',
 				description: 'Fetch an order',
 				action: 'Fetch an order',
+			},
+			{
+				name: 'Fetch Open Order',
+				value: 'fetchOpenOrder',
+				description: 'Fetches a single open order by order ID',
+				action: 'Fetch an open order',
+			},
+			{
+				name: 'Fetch Order Orders',
+				value: 'fetchOpenOrders',
+				description: 'Fetches a list of open orders',
+				action: 'Fetch an open order',
+			},
+			{
+				name: 'Fetch Closed Order',
+				value: 'fetchClosedOrder',
+				description: 'Fetches a single closed order by order ID',
+				action: 'Fetch an closed order',
+			},
+			{
+				name: 'Fetch Closed Orders',
+				value: 'fetchClosedOrders',
+				description: 'Fetches a list of canceled orders',
+				action: 'Fetch list closed orders',
 			},
 			{
 				name: 'Cancel Order',
