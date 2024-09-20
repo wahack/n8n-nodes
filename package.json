@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-turtle",
-  "version": "0.1.79",
+  "version": "0.2.1",
   "description": "no description",
   "keywords": [
     "n8n-community-node-package"
@@ -23,7 +23,7 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "npx only-allow npm",
-    "build": "tsc && gulp build:icons",
+    "build": "rm -rf dist && tsc && gulp build:icons",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
@@ -62,7 +62,7 @@
     "@bluefin-exchange/bluefin-v2-client": "^5.4.5",
     "axios": "^1.7.4",
     "bignumber.js": "^9.1.2",
-    "ccxt": "^4.4.2",
+    "ccxt": "4.4.5",
     "lodash": "^4.17.21",
     "moment-timezone": "^0.5.45",
     "qs": "^6.13.0",
