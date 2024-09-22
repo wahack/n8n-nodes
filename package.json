@@ -42,7 +42,7 @@
     "nodes": [
       "dist/nodes/CoinTrade/CoinTrade.node.js",
       "dist/nodes/CoinTrade/CoinTradeTrigger.node.js",
-      "dist/nodes/CoinTrade/FormIoCustom.node.js"
+      "dist/nodes/FormIoCustom/FormIoCustom.node.js"
     ]
   },
   "devDependencies": {
