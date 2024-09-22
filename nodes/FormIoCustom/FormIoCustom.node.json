@@ -1,0 +1,14 @@
+{
+	"node": "n8n-nodes-turtle.formIoCustom",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"details": "self host formio",
+	"categories": ["db"],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://apidocs.form.io"
+			}
+		]
+	}
+}
