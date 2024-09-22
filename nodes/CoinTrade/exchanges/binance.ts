@@ -45,23 +45,29 @@ export async function postRequest (apiKey: string, secret: string, proxy: string
 	return res.data
 }
 
-export async function request (apiKey: string, secret: string, proxy: string,  path: string,method: string, data: any) {
-	data.timestamp = new Date().getTime();
-	data.recvWindow = 10000;
+export async function request (apiKey: string, secret: string, proxy: string,  path: string,method: string, data: any = {}) {
+	path = path.trim();
+	const params = {
+		...data
+	}
+
+	if (apiKey && secret) {
+		data.timestamp = new Date().getTime();
+		data.recvWindow = 10000;
+		params.signature =  sign(data, secret)
+	}
+
 	const res =  await axios({
-		url: host + path,
+		url: path.startsWith('http') ? path :  host + path,
 		method,
 		responseType: 'json',
-		headers: {
+		headers: params.signature ? {
 			'X-MBX-APIKEY': apiKey,
-		},
+		} : {},
 		httpAgent: new SocksProxyAgent(proxy),
 		httpsAgent: new SocksProxyAgent(proxy),
 		timeout: 10000,
-		params: {
-			...data,
-			signature: sign(data, secret)
-		},
+		params,
 		validateStatus: null
 	})
 	return res.data

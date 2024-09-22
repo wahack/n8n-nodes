@@ -74,7 +74,13 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	const returnData: INodeExecutionData[] = [];
 	const length = items.length;
 
-	const credentials = await this.getCredentials('coinTradeApi');
+	let credentials = {apiKey: '', secret: '', password: ''}
+	try {
+		// @ts-ignore
+		credentials = await this.getCredentials('coinTradeApi') || {};
+	} catch (e) {
+
+	}
 
 	for (let i = 0; i < length; i++) {
 		try {
@@ -92,7 +98,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 				credentials.secret as string,
 				(credentials.password as string) || '',
 				proxy,
-				path,
+				path.trim(),
 				method,
 				data
 			)
