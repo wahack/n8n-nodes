@@ -52,9 +52,9 @@ export async function request (apiKey: string, secret: string, proxy: string,  p
 	}
 
 	if (apiKey && secret) {
-		data.timestamp = new Date().getTime();
-		data.recvWindow = 10000;
-		params.signature =  sign(data, secret)
+		params.timestamp = new Date().getTime();
+		params.recvWindow = 10000;
+		params.signature =  sign(params, secret)
 	}
 
 	const res =  await axios({
@@ -64,8 +64,8 @@ export async function request (apiKey: string, secret: string, proxy: string,  p
 		headers: params.signature ? {
 			'X-MBX-APIKEY': apiKey,
 		} : {},
-		httpAgent: new SocksProxyAgent(proxy),
-		httpsAgent: new SocksProxyAgent(proxy),
+		httpAgent: proxy ? new SocksProxyAgent(proxy) : undefined,
+		httpsAgent: proxy ? new SocksProxyAgent(proxy): undefined,
 		timeout: 10000,
 		params,
 		validateStatus: null
