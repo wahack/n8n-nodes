@@ -88,7 +88,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const params = validateJSON(this.getNodeParameter('params', i) as string);
 
 			const pastMonth = Date.now() - 30 * 24 * 60 * 60 * 1000;
-			const responseData = await exchange.fetchOpenOrders(symbol, since ? +since || pastMonth , limit || 10, params || {})
+			const responseData = await exchange.fetchOpenOrders(symbol, since ? +since : pastMonth, limit || 10, params || {})
 
 			exchanges.clearKeys(exchange);
 			const executionData = this.helpers.constructExecutionMetaData(
