@@ -42,10 +42,10 @@ export const description: INodeProperties[] = [
 				action: 'Fetch an open order',
 			},
 			{
-				name: 'Fetch Order Orders',
+				name: 'Fetch Open Orders',
 				value: 'fetchOpenOrders',
 				description: 'Fetches a list of open orders',
-				action: 'Fetch an open order',
+				action: 'Fetch list open orders',
 			},
 			{
 				name: 'Fetch Closed Order',

@@ -83,17 +83,18 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
 			const symbol = (this.getNodeParameter('symbol', i) as string);
-			const since = (this.getNodeParameter('since', i) as string);
+			const since = (this.getNodeParameter('since', i) as number);
 			const limit = (this.getNodeParameter('limit', i) as number);
 			const params = validateJSON(this.getNodeParameter('params', i) as string);
 
-			const responseData = await exchange.fetchOpenOrders(symbol, +since, limit || 10, params || {})
+			const pastMonth = Date.now() - 30 * 24 * 60 * 60 * 1000;
+			const responseData = await exchange.fetchOpenOrders(symbol, since ? +since || pastMonth , limit || 10, params || {})
 
 			exchanges.clearKeys(exchange);
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
 				// @ts-ignore
-				this.helpers.returnJsonArray(responseData as IDataObject),
+				this.helpers.returnJsonArray({list: responseData} as IDataObject),
 
 				{ itemData: { item: i } },
 			);
