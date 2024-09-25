@@ -5,12 +5,12 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import exchangesV2 from '../../exchanges-v2';
+import exchangesV2 from '../../exchanges';
 
 import {
 	updateDisplayOptions,
 } from '../../../../utils/utilities';
-import { ApiKeys } from '../../exchanges-v2/types';
+import { ApiKeys } from '../../exchanges/types';
 
 function validateJSON(json: string | undefined): object {
 	let result;

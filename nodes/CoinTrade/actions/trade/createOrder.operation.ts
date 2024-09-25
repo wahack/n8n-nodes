@@ -5,9 +5,7 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import BigNumber from 'bignumber.js';
-
-import exchanges from '../../exchanges-v2';
+import exchanges from '../../exchanges';
 
 import {
 	updateDisplayOptions,
@@ -178,7 +176,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			// if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : new BigNumber(quantity).dividedBy((await exchange.fetchTicker(symbol)).last || 0).toNumber()));
 
 
-			const responseData = await exchanges[platform].createOrder(proxy, credentials as any, symbol, type, side, amount, price as number, params || {})
+			const responseData = await exchanges[platform].createOrder(proxy, credentials as any, symbol, type, side, amount, price as number, {quantityUnit, ...params})
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),

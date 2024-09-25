@@ -63,16 +63,16 @@ export default class BaseExchange {
 	static async fetchOrderBook(socksProxy: string, symbol: string, limit: number): Promise<OrderBook> {
 		throw new Error('Not implemented');
 	}
-	static async fetchBalance(socksProxy: string, apikeys: ApiKeys): Promise<any> {
+	static async fetchBalance(socksProxy: string, apikeys: ApiKeys, coin?: string): Promise<any> {
 		throw new Error('Not implemented');
 	}
-	static async fetchOpenOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<any> {
+	static async fetchOpenOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<Order[]> {
 		throw new Error('Not implemented');
 	}
-	static async fetchClosedOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<any> {
+	static async fetchClosedOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<Order[]> {
 		throw new Error('Not implemented');
 	}
-	static async fetchOrder(socksProxy: string, apikeys: ApiKeys, orderId: string, symbol: string, params: any): Promise<any> {
+	static async fetchOrder(socksProxy: string, apikeys: ApiKeys, orderId: string, symbol: string, params: any): Promise<Order> {
 		throw new Error('Not implemented');
 	}
 	static async createOrder(socksProxy: string, apikeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, params: any) {
@@ -94,6 +94,9 @@ export default class BaseExchange {
 		throw new Error('Not implemented');
 	}
 	static async fetchOHLCV(socksProxy: string, symbol: string, timeframe: string, limit: number): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async fetchMyTrades(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<any> {
 		throw new Error('Not implemented');
 	}
 }

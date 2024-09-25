@@ -105,12 +105,7 @@ export class CoinTradeApi implements ICredentialType {
 	async authenticate (credentials: ICredentialDataDecryptedObject, requestOptions: IHttpRequestOptions): Promise<IHttpRequestOptions> {
 		if (requestOptions.baseURL === TEST_URL_FLAG) {
 			try {
-				const exchange = await exchanges.get(credentials.platform as string)
-				exchanges.setKeys(exchange, credentials.apiKey as string,  credentials.secret as string, credentials.password as string)
-				exchanges.setProxy(exchange, credentials.proxy as string);
-				await exchange.fetchBalance()
-				exchanges.setProxy(exchange, '');
-				exchanges.clearKeys(exchange)
+				await exchanges[credentials.platform as string].fetchBalance(credentials.proxy as string, credentials as any)
 			}
 			catch (e) {
 				requestOptions.baseURL = 'https://api.airtable.com/v0/meta/whoami' // for test purpose, put any site who should return error

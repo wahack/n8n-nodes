@@ -118,9 +118,6 @@ export class CoinTradeTrigger implements INodeType {
 
 		const lastTimeChecked = (webhookData.lastTimeChecked as string) || now;
 
-		const exchange = exchanges.get(platform)
-		exchanges.setProxy(exchange, proxy);
-		exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
 		if (poolTimes.length === 0) {
 			throw new NodeOperationError(this.getNode(), 'Please set a poll time');
@@ -128,12 +125,11 @@ export class CoinTradeTrigger implements INodeType {
 
 		let trades
 		try {
-			trades = await exchange.fetchMyTrades(symbol, Date.parse(lastTimeChecked), limit, {});
+			trades = await exchanges[platform].fetchMyTrades( proxy, credentials as any, symbol, Date.parse(lastTimeChecked), limit, {});
 		} catch (e) {
 			return null
 		}
 
-		exchanges.clearKeys(exchange);
 		webhookData.lastTimeChecked = now;
 		if (Array.isArray(trades) && trades.length !== 0) {
 			// @ts-ignore

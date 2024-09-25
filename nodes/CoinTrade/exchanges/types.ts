@@ -45,13 +45,6 @@ export type RequestInfo = {
 	info: any;
 }
 
-export interface ResponseWrap<T> {
-	data: T;
-	code: number;
-	msg: string;
-	request?: RequestInfo;
-}
-
 export type Balance = {
 	info: any;
 }
