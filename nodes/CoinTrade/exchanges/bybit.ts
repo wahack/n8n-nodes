@@ -8,6 +8,7 @@ import { Ticker, ApiKeys, Market, Order, OrderBook } from './types';
 import getAgent  from './agent';
 import muder from './helpers/muder';
 import { ExchangeError, NetworkRequestError } from './helpers/error';
+import BigNumber from 'bignumber.js';
 
 /**
  * Netherland users: use https://api.bybit.nl for mainnet
@@ -97,7 +98,7 @@ export default class Bybit extends BaseExchange {
 			average: 'avgPrice|num',
 			amount: 'qty|num',
 			filled: 'cumExecQty|num',
-			remaining: 'leavesQty|num'
+			remaining: (data: any) => !isEmpty(data.leavesQty) ? +data.leavesQty : new BigNumber(data.qty).minus(data.cumExecQty).toNumber()
 		})
 	}
 
@@ -192,7 +193,7 @@ export default class Bybit extends BaseExchange {
 			params,
 			httpsAgent: getAgent(socksProxy)
 		});
-		return this.parseOrder(response.data.result, symbol)
+		return this.parseOrder(response.data.result.list[0], symbol)
 	}
 
 	static async fetchOpenOrders(socksProxy: string, apiKeys: ApiKeys, symbol: string, since: number | undefined, limit: number, paramsExtra?: any): Promise<Order[]> {
@@ -274,15 +275,15 @@ export default class Bybit extends BaseExchange {
 
 // async function test() {
 // 	const apiKeys = {
-// 		apiKey: '',
-// 		secret: ''
+
 // 	}
 // 	// console.log(await Bybit.fetchTicker('', 'BTC/USDT:USDT'));
 // 	// console.log(await Bybit.fetchBalance('', apiKeys));
 // 	// console.log(await Bybit.fetchClosedOrders('', apiKeys, 'BTC/USDT:USDT',undefined,20));
 // 	// console.log(await Bybit.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.001, 63000));
 // 	// console.log(await Bybit.cancelOrder('socks://127.0.0.1:7890', apiKeys, 'c775afc3-6c6a-4cb9-944e-c13a1faac92b', 'BTC/USDT:USDT'));
-// 	console.log(await Bybit.fetchOrderBook('socks://127.0.0.1:7890', 'BTC/USDT:USDT', 10));
+// 	// console.log(await Bybit.fetchOrderBook('socks://127.0.0.1:7890', 'BTC/USDT:USDT', 10));
+// 	// console.log(await Bybit.fetchOrder('', apiKeys, '2a733272-5240-4e92-92e1-5daa2d5bc82c', 'BTC/USDT:USDT', {}));
 // }
 
 // test();

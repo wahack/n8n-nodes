@@ -1,0 +1,6 @@
+{
+  "watch": ["nodes/", "credentials/"],
+  "ext": "ts,tsx,js,jsx,json",
+  "ignore": ["dist/"],
+  "exec": "npm run build"
+}
