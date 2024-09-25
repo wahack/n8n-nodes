@@ -63,11 +63,13 @@
   "dependencies": {
     "@bluefin-exchange/bluefin-v2-client": "^5.4.5",
     "axios": "^1.7.4",
+    "axios-retry": "^4.5.0",
     "bignumber.js": "^9.1.2",
     "ccxt": "4.4.5",
-    "lodash": "^4.17.21",
     "moment-timezone": "^0.5.45",
+    "muder": "^0.2.0",
     "qs": "^6.13.0",
+    "radash": "^12.1.0",
     "socks-proxy-agent": "^8.0.4",
     "viem": "^2.21.8"
   }
