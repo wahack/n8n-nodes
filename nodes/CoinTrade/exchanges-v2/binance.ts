@@ -102,7 +102,7 @@ export default class Binance extends BaseExchange {
 	}
 
 	/** ---- Public API ---- */
-	static async fetchTicker(socksProxy: string, symbol: string): Promise<Ticker & RequestInfo> {
+	static async fetchTicker(socksProxy: string, symbol: string): Promise<Ticker> {
 		const market = this.getMarket(symbol);
 		let url = UNIFIED_URL;
 		if (market.marketType === 'spot') {
@@ -124,13 +124,7 @@ export default class Binance extends BaseExchange {
 			low: 0,
 			volume: 0,
 			bid: 0,
-			ask: 0,
-			info: response.data,
-			requestInfo: {
-				url,
-				method: 'GET',
-				...pick(response.headers, ['x-bapi-limit', 'x-bapi-limit-status', 'x-bapi-limit-reset-timestamp'])
-			}
+			ask: 0
 		}
 	}
 
@@ -162,7 +156,7 @@ export default class Binance extends BaseExchange {
 	}
 
 	/** ---- Private API ---- */
-	static async fetchBalance(socksProxy: string, apiKeys: ApiKeys, coin?: string): Promise<RequestInfo> {
+	static async fetchBalance(socksProxy: string, apiKeys: ApiKeys, coin?: string): Promise<any> {
 		const url = UNIFIED_URL + '/papi/v1/balance';
 		const { method, params, headers } = this.sign(apiKeys, url, 'GET', {asset:coin});
 		const response = await requestInstance(url, {
@@ -250,7 +244,7 @@ export default class Binance extends BaseExchange {
 		});
 	}
 
-	static async createOrder(socksProxy: string, apiKeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, paramsExtra?: any) {
+	static async createOrder(socksProxy: string, apiKeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, paramsExtra?: any): Promise<any> {
 		const market = this.getMarket(symbol);
 		let url = UNIFIED_URL + '/papi/v1/um/order';
 		if (market.marketType === 'spot') {
@@ -300,4 +294,4 @@ async function test() {
 	// console.log(await Binance.fetchOrderBook('socks://127.0.0.1:7890', 'BTC/USDT', 10));
 }
 
-test();
+// test();

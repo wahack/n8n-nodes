@@ -5,7 +5,7 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import exchanges from '../../exchanges';
+import exchanges from '../../exchanges-v2';
 
 import {
 	updateDisplayOptions,
@@ -77,10 +77,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	for (let i = 0; i < length; i++) {
 		try {
 			const platform = this.getNodeParameter('platform', i) as string;
-			const exchange = exchanges.get(platform)
 			const proxy = this.getNodeParameter('proxy', i) as string;
-			exchanges.setProxy(exchange, proxy);
-			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
 			const symbol = (this.getNodeParameter('symbol', i) as string);
 			const since = (this.getNodeParameter('since', i) as number);
@@ -88,9 +85,8 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const params = validateJSON(this.getNodeParameter('params', i) as string);
 
 			const pastMonth = Date.now() - 30 * 24 * 60 * 60 * 1000;
-			const responseData = await exchange.fetchOpenOrders(symbol, since ? +since : pastMonth, limit || 10, params || {})
+			const responseData = await exchanges[platform].fetchOpenOrders(proxy, credentials as any, symbol, since ? +since : pastMonth, limit || 10, params || {})
 
-			exchanges.clearKeys(exchange);
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
 				// @ts-ignore

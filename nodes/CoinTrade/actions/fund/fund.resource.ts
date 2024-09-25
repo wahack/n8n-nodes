@@ -1,9 +1,8 @@
 import type { INodeProperties } from 'n8n-workflow';
 
 import * as withdraw from './withdraw.operation';
-import * as coinInfo from './coinInfo.operation';
 
-export { withdraw, coinInfo };
+export { withdraw };
 
 export const description: INodeProperties[] = [
 	{
@@ -37,6 +36,5 @@ export const description: INodeProperties[] = [
 			},
 		},
 	},
-	...withdraw.description,
-	...coinInfo.description,
+	...withdraw.description
 ];

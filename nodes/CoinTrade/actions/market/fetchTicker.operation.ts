@@ -4,7 +4,7 @@ import type {
 	INodeProperties,
 	IExecuteFunctions,
 } from 'n8n-workflow';
-import exchanges from '../../exchanges';
+import exchanges from '../../exchanges-v2';
 
 import {
 	updateDisplayOptions,
@@ -39,13 +39,11 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	for (let i = 0; i < length; i++) {
 		try {
 			const platform = this.getNodeParameter('platform', i) as string;
-			const exchange = exchanges.get(platform)
 			const proxy = this.getNodeParameter('proxy', i) as string;
-			exchanges.setProxy(exchange, proxy);
 
 			const symbol = this.getNodeParameter('symbol', i) as string;
 
-			const responseData = await exchange.fetchTicker(symbol)
+			const responseData = await exchanges[platform].fetchTicker(proxy, symbol)
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),

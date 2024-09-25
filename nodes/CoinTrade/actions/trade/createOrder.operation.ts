@@ -7,7 +7,7 @@ import type {
 
 import BigNumber from 'bignumber.js';
 
-import exchanges from '../../exchanges';
+import exchanges from '../../exchanges-v2';
 
 import {
 	updateDisplayOptions,
@@ -125,66 +125,61 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	for (let i = 0; i < length; i++) {
 		try {
 			const platform = this.getNodeParameter('platform', i) as string;
-			const exchange = exchanges.get(platform)
 			const proxy = this.getNodeParameter('proxy', i) as string;
 			const params = validateJSON(this.getNodeParameter('params', i) as string);
-
-			exchanges.setProxy(exchange, proxy);
-			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
 
 			const symbol = (this.getNodeParameter('symbol', i) as string).trim().toUpperCase();
 			let side = this.getNodeParameter('side', i) as string;
 			const type = this.getNodeParameter('type', i) as string;
-			const quantity = this.getNodeParameter('quantity', i) as number;
+			const amount = this.getNodeParameter('quantity', i) as number;
 			const quantityUnit = this.getNodeParameter('quantityUnit', i) as string;
 			let price = type === 'limit' ? this.getNodeParameter('price', i) as number : undefined;
 
-			let amount: number = 0;
+			// let amount: number = 0;
 
 
-			if (platform === 'okx' || platform === 'gate') {
-				await exchange.loadMarkets();
-			const market = exchange.market(symbol);
-				if (market.contract) {
-					// params.positionSide = positionSide;
-					if (market['quote'] === 'USD') {//币本位
-						let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
-						amount = Math.round(total / (market['contractSize'] || 1)); //币本位,合约面值1张xx美元
-					} else if (market['quote'] === 'USDT') {//u本位
-						let count = quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0);
-						amount = Math.round(count / (market['contractSize'] || 1)); //u本位,合约面值1张多少个币
-					}
-				}
-			} else if (platform === 'binance') {
-				await exchange.loadMarkets();
-				const market = exchange.market(symbol);
-				if (market.contract) {
-					if (market['quote'] === 'USD') {
-						let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
-						amount = Math.round(total / market['contractSize']!); //币本位,合约面值1张xx美元
-					}
-				}
-			} else if (platform === 'bybit') {
+			// if (platform === 'okx' || platform === 'gate') {
+			// 	await exchange.loadMarkets();
+			// const market = exchange.market(symbol);
+			// 	if (market.contract) {
+			// 		// params.positionSide = positionSide;
+			// 		if (market['quote'] === 'USD') {//币本位
+			// 			let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
+			// 			amount = Math.round(total / (market['contractSize'] || 1)); //币本位,合约面值1张xx美元
+			// 		} else if (market['quote'] === 'USDT') {//u本位
+			// 			let count = quantityUnit === 'count' ? quantity : quantity / ((await exchange.fetchTicker(symbol)).last || 0);
+			// 			amount = Math.round(count / (market['contractSize'] || 1)); //u本位,合约面值1张多少个币
+			// 		}
+			// 	}
+			// } else if (platform === 'binance') {
+			// 	await exchange.loadMarkets();
+			// 	const market = exchange.market(symbol);
+			// 	if (market.contract) {
+			// 		if (market['quote'] === 'USD') {
+			// 			let total = quantityUnit === 'usdt' ? quantity : quantity * ((await exchange.fetchTicker(symbol)).last || 0)
+			// 			amount = Math.round(total / market['contractSize']!); //币本位,合约面值1张xx美元
+			// 		}
+			// 	}
+			// } else if (platform === 'bybit') {
 
-			} else if (platform === 'bitget') {
-				await exchange.loadMarkets();
-				const market = exchange.market(symbol);
-				if (market.contract) {
-					// side = side + '_single';
-				} else { //现货
-					if (type === 'market' && side === 'buy') {
-						price = (await exchange.fetchTicker(symbol)).last
-					}
-				}
-			}
-
-
-			if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : new BigNumber(quantity).dividedBy((await exchange.fetchTicker(symbol)).last || 0).toNumber()));
+			// } else if (platform === 'bitget') {
+			// 	await exchange.loadMarkets();
+			// 	const market = exchange.market(symbol);
+			// 	if (market.contract) {
+			// 		// side = side + '_single';
+			// 	} else { //现货
+			// 		if (type === 'market' && side === 'buy') {
+			// 			price = (await exchange.fetchTicker(symbol)).last
+			// 		}
+			// 	}
+			// }
 
 
-			const responseData = await exchange.createOrder(symbol, type, side, amount, price, params || {})
+			// if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : new BigNumber(quantity).dividedBy((await exchange.fetchTicker(symbol)).last || 0).toNumber()));
 
-			exchanges.clearKeys(exchange);
+
+			const responseData = await exchanges[platform].createOrder(proxy, credentials as any, symbol, type, side, amount, price as number, params || {})
+
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
 				// @ts-ignore

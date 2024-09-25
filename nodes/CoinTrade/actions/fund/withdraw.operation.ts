@@ -5,7 +5,7 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import exchanges from '../../exchanges';
+import exchanges from '../../exchanges-v2';
 
 import {
 	updateDisplayOptions,
@@ -69,23 +69,16 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	for (let i = 0; i < length; i++) {
 		try {
 			const platform = this.getNodeParameter('platform', i) as string;
-			const exchange = exchanges.get(platform)
 			const proxy = this.getNodeParameter('proxy', i) as string;
-			exchanges.setProxy(exchange, proxy);
-
-			exchanges.setKeys(exchange, credentials.apiKey as string, credentials.secret as string, credentials.password as string, credentials.uid as string)
-
 
 
 			const coin = this.getNodeParameter('coin', i) as string;
 			const address = this.getNodeParameter('address', i) as string;
-			const amount = this.getNodeParameter('amount', i) as number;
+			const amount = this.getNodeParameter('amount', i) as string;
 			const network = this.getNodeParameter('network', i) as string;
 			const tag = this.getNodeParameter('tag', i) as string;
 
-			const responseData = await exchange.withdraw(coin, amount, address, tag, {network})
-
-			exchanges.clearKeys(exchange);
+			const responseData = await exchanges[platform].withdraw(proxy, credentials as any, coin, amount, address, tag, network)
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),

@@ -1,4 +1,4 @@
-import { Ticker, ApiKeys, MarketType, Market, ResponseWrap } from './types';
+import { Ticker, ApiKeys, Market, Order, MarketType, OrderBook } from './types';
 
 /**
  * Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods.
@@ -57,4 +57,43 @@ export default class BaseExchange {
 		throw new Error('Invalid symbol input');
 	}
 
+	static async fetchTicker(socksProxy: string, symbol: string): Promise<Ticker> {
+		throw new Error('Not implemented');
+	}
+	static async fetchOrderBook(socksProxy: string, symbol: string, limit: number): Promise<OrderBook> {
+		throw new Error('Not implemented');
+	}
+	static async fetchBalance(socksProxy: string, apikeys: ApiKeys): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async fetchOpenOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async fetchClosedOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async fetchOrder(socksProxy: string, apikeys: ApiKeys, orderId: string, symbol: string, params: any): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async createOrder(socksProxy: string, apikeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, params: any) {
+		throw new Error('Not implemented');
+	}
+	static async cancelOrder(socksProxy: string, apikeys: ApiKeys, orderId: string, symbol: string, params: any): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async cancelOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, params: any): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async cancelAllOrders(socksProxy: string, apikeys: ApiKeys, symbol: string, params: any): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async customRequest(socksProxy: string, apikeys: ApiKeys, path: string, method: string, data: any): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async withdraw(socksProxy: string, apikeys: ApiKeys, path: string, method: string, data: any, tag: string, network: string): Promise<any> {
+		throw new Error('Not implemented');
+	}
+	static async fetchOHLCV(socksProxy: string, symbol: string, timeframe: string, limit: number): Promise<any> {
+		throw new Error('Not implemented');
+	}
 }

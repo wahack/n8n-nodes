@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { isEmpty, pick } from 'radash';
 import qs from 'qs';
 import BaseExchange from './exchange.abstract';
-import { Ticker, ApiKeys, Market,  Balance, Order, RequestInfo, OrderBook } from './types';
+import { Ticker, ApiKeys, Market, Order, OrderBook } from './types';
 import getAgent  from './agent';
 import muder from './helpers/muder';
 import { ExchangeError, NetworkRequestError } from './helpers/error';
@@ -121,7 +121,7 @@ export default class Bybit extends BaseExchange {
 	}
 
 	/** ---- Public API ---- */
-	static async fetchTicker(socksProxy: string, symbol: string): Promise<Ticker & RequestInfo> {
+	static async fetchTicker(socksProxy: string, symbol: string): Promise<Ticker> {
 		const market = this.getMarket(symbol);
     const response = await requestInstance.get('/v5/market/tickers', {
       params: {
@@ -139,13 +139,7 @@ export default class Bybit extends BaseExchange {
 				vol: 'volume24h|num',
 				bid: 'bid1Price|num',
 				ask: 'ask1Price|num'
-			}),
-			info: response.data.result.list[0],
-			requestInfo: {
-				url: requestInstance.defaults.baseURL + '/v5/market/tickers',
-				method: 'GET',
-				...pick(response.headers, ['x-bapi-limit', 'x-bapi-limit-status', 'x-bapi-limit-reset-timestamp'])
-			}
+			})
 		}
 	}
 
@@ -168,7 +162,7 @@ export default class Bybit extends BaseExchange {
 	}
 
 	/** ---- Private API ---- */
-	static async fetchBalance(socksProxy: string, apiKeys: ApiKeys, coin?: string): Promise<RequestInfo> {
+	static async fetchBalance(socksProxy: string, apiKeys: ApiKeys, coin?: string): Promise<any> {
 		const { url, method, data, headers, params } = this.sign(apiKeys, '/v5/account/wallet-balance', 'GET', {accountType: 'UNIFIED', coin});
 		const response = await requestInstance(url, {
 			method,
@@ -243,7 +237,7 @@ export default class Bybit extends BaseExchange {
 		});
 	}
 
-	static async createOrder(socksProxy: string, apiKeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, paramsExtra?: any) {
+	static async createOrder(socksProxy: string, apiKeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, paramsExtra?: any): Promise<any> {
 		const market = this.getMarket(symbol);
 		const { url, method, data, headers, params } = this.sign(apiKeys, '/v5/order/create', 'POST', undefined, {category: market.marketType, symbol: market.symbol,  price: (price||'').toString(), side: capitalize(side),qty: amount.toString(),marketUnit: 'baseCoin', orderType: capitalize(type), ...paramsExtra});
 		const response = await requestInstance(url, {

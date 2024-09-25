@@ -5,11 +5,12 @@ import type {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-import {request} from '../../exchanges/request';
+import exchangesV2 from '../../exchanges-v2';
 
 import {
 	updateDisplayOptions,
 } from '../../../../utils/utilities';
+import { ApiKeys } from '../../exchanges-v2/types';
 
 function validateJSON(json: string | undefined): object {
 	let result;
@@ -92,14 +93,11 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const data = validateJSON(this.getNodeParameter('data', i) as string);
 
 
-			const responseData = await request(
-				this.getNodeParameter('platform', i) as string,
-				credentials.apiKey as string,
-				credentials.secret as string,
-				(credentials.password as string) || '',
+			const responseData = await exchangesV2[this.getNodeParameter('platform', i) as string].customRequest(
 				proxy,
+				credentials as ApiKeys,
 				path.trim(),
-				method,
+				method.toUpperCase(),
 				data
 			)
 
