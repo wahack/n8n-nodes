@@ -8,7 +8,9 @@ import type {
 
 import { ApplicationError, jsonParse, randomInt } from 'n8n-workflow';
 
-import { isEqual, isNull, merge, isObject, reduce, get } from 'lodash';
+import { isEqual, get } from 'radash';
+
+
 
 /**
  * Creates an array of elements split into groups the length of `size`.
@@ -50,21 +52,6 @@ export const shuffleArray = <T>(array: T[]): void => {
 		const j = randomInt(i + 1);
 		[array[i], array[j]] = [array[j], array[i]];
 	}
-};
-
-/**
- * Flattens an object with deep data
- * @param {IDataObject} data The object to flatten
- * @param {string[]} prefix The prefix to add to each key in the returned flat object
- */
-export const flattenKeys = (obj: IDataObject, prefix: string[] = []): IDataObject => {
-	return !isObject(obj)
-		? { [prefix.join('.')]: obj }
-		: reduce(
-				obj,
-				(cum, next, key) => merge(cum, flattenKeys(next as IDataObject, [...prefix, key])),
-				{},
-			);
 };
 
 /**
@@ -135,7 +122,7 @@ export function updateDisplayOptions(
 	return properties.map((nodeProperty) => {
 		return {
 			...nodeProperty,
-			displayOptions: merge({}, nodeProperty.displayOptions, displayOptions),
+			displayOptions: { ...nodeProperty.displayOptions, ...displayOptions },
 		};
 	});
 }
@@ -161,106 +148,6 @@ export function processJsonInput<T>(jsonData: T, inputName?: string) {
 
 	return values;
 }
-
-function isFalsy<T>(value: T) {
-	if (isNull(value)) return true;
-	if (typeof value === 'string' && value === '') return true;
-	if (Array.isArray(value) && value.length === 0) return true;
-	return false;
-}
-
-const parseStringAndCompareToObject = (str: string, arr: IDataObject) => {
-	try {
-		const parsedArray = jsonParse(str);
-		return isEqual(parsedArray, arr);
-	} catch (error) {
-		return false;
-	}
-};
-
-export const fuzzyCompare = (useFuzzyCompare: boolean, compareVersion = 1) => {
-	if (!useFuzzyCompare) {
-		//Fuzzy compare is false we do strict comparison
-		return <T, U>(item1: T, item2: U) => isEqual(item1, item2);
-	}
-
-	return <T, U>(item1: T, item2: U) => {
-		//Both types are the same, so we do strict comparison
-		if (!isNull(item1) && !isNull(item2) && typeof item1 === typeof item2) {
-			return isEqual(item1, item2);
-		}
-
-		if (compareVersion >= 2) {
-			//Null, 0 and "0" treated as equal
-			if (isNull(item1) && (isNull(item2) || item2 === 0 || item2 === '0')) {
-				return true;
-			}
-
-			if (isNull(item2) && (isNull(item1) || item1 === 0 || item1 === '0')) {
-				return true;
-			}
-		}
-
-		//Null, empty strings, empty arrays all treated as the same
-		if (isFalsy(item1) && isFalsy(item2)) return true;
-
-		//When a field is missing in one branch and isFalsy() in another, treat them as matching
-		if (isFalsy(item1) && item2 === undefined) return true;
-		if (item1 === undefined && isFalsy(item2)) return true;
-
-		//Compare numbers and strings representing that number
-		if (typeof item1 === 'number' && typeof item2 === 'string') {
-			return item1.toString() === item2;
-		}
-
-		if (typeof item1 === 'string' && typeof item2 === 'number') {
-			return item1 === item2.toString();
-		}
-
-		//Compare objects/arrays and their stringified version
-		if (!isNull(item1) && typeof item1 === 'object' && typeof item2 === 'string') {
-			return parseStringAndCompareToObject(item2, item1 as IDataObject);
-		}
-
-		if (!isNull(item2) && typeof item1 === 'string' && typeof item2 === 'object') {
-			return parseStringAndCompareToObject(item1, item2 as IDataObject);
-		}
-
-		//Compare booleans and strings representing the boolean (’true’, ‘True’, ‘TRUE’)
-		if (typeof item1 === 'boolean' && typeof item2 === 'string') {
-			if (item1 === true && item2.toLocaleLowerCase() === 'true') return true;
-			if (item1 === false && item2.toLocaleLowerCase() === 'false') return true;
-		}
-
-		if (typeof item2 === 'boolean' && typeof item1 === 'string') {
-			if (item2 === true && item1.toLocaleLowerCase() === 'true') return true;
-			if (item2 === false && item1.toLocaleLowerCase() === 'false') return true;
-		}
-
-		//Compare booleans and the numbers/string 0 and 1
-		if (typeof item1 === 'boolean' && typeof item2 === 'number') {
-			if (item1 === true && item2 === 1) return true;
-			if (item1 === false && item2 === 0) return true;
-		}
-
-		if (typeof item2 === 'boolean' && typeof item1 === 'number') {
-			if (item2 === true && item1 === 1) return true;
-			if (item2 === false && item1 === 0) return true;
-		}
-
-		if (typeof item1 === 'boolean' && typeof item2 === 'string') {
-			if (item1 === true && item2 === '1') return true;
-			if (item1 === false && item2 === '0') return true;
-		}
-
-		if (typeof item2 === 'boolean' && typeof item1 === 'string') {
-			if (item2 === true && item1 === '1') return true;
-			if (item2 === false && item1 === '0') return true;
-		}
-
-		return isEqual(item1, item2);
-	};
-};
 
 export function wrapData(data: IDataObject | IDataObject[]): INodeExecutionData[] {
 	if (!Array.isArray(data)) {

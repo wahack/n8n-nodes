@@ -63,7 +63,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const timeframe = this.getNodeParameter('timeframe', i) as string;
 			const limit = this.getNodeParameter('limit', i) as number;
 
-			const responseData = await exchanges[platform].fetchOHLCV(proxy, symbol, timeframe, limit)
+			const responseData = await exchanges[platform].fetchOHLCV(proxy, symbol, timeframe, new Date().getTime(), limit)
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),

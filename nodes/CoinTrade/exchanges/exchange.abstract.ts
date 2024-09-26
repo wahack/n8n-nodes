@@ -1,4 +1,4 @@
-import { Ticker, ApiKeys, Market, Order, MarketType, OrderBook } from './types';
+import { Ticker, ApiKeys, Market, Order, MarketType, OrderBook, OHLCV } from './types';
 
 /**
  * Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods.
@@ -63,6 +63,9 @@ export default class BaseExchange {
 	static async fetchOrderBook(socksProxy: string, symbol: string, limit: number): Promise<OrderBook> {
 		throw new Error('Not implemented');
 	}
+	static async fetchOHLCV (socksProxy: string, symbol: string, timeframe = '1m', since: number, limit: number, params = {}): Promise<OHLCV[]> {
+		throw new Error('Not implemented');
+	}
 	static async fetchBalance(socksProxy: string, apikeys: ApiKeys, coin?: string): Promise<any> {
 		throw new Error('Not implemented');
 	}
@@ -91,9 +94,6 @@ export default class BaseExchange {
 		throw new Error('Not implemented');
 	}
 	static async withdraw(socksProxy: string, apikeys: ApiKeys, path: string, method: string, data: any, tag: string, network: string): Promise<any> {
-		throw new Error('Not implemented');
-	}
-	static async fetchOHLCV(socksProxy: string, symbol: string, timeframe: string, limit: number): Promise<any> {
 		throw new Error('Not implemented');
 	}
 	static async fetchMyTrades(socksProxy: string, apikeys: ApiKeys, symbol: string, since: number, limit: number, params: any): Promise<any> {

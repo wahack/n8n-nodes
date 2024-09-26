@@ -29,5 +29,6 @@
 		"types/**/*"
 	],
 	"exclude": [
+		"nodes/CoinTrade/test/**/*"
 	]
 }

@@ -14,6 +14,16 @@ export type Ticker = {
 	volume: number;
 };
 
+export type OHLCV = [
+  number, // 时间戳
+  number, // 开盘价
+  number, // 最高价
+  number, // 最低价
+  number, // 收盘价
+  number  // 交易量
+];
+
+
 export type OrderBook = {
 	symbol: string;
 	timestamp: number;
