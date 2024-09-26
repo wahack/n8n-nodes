@@ -43,7 +43,8 @@
     "nodes": [
       "dist/nodes/CoinTrade/CoinTrade.node.js",
       "dist/nodes/CoinTrade/CoinTradeTrigger.node.js",
-      "dist/nodes/FormIoCustom/FormIoCustom.node.js"
+      "dist/nodes/FormIoCustom/FormIoCustom.node.js",
+      "dist/nodes/TaIndicators/TaIndicators.node.js"
     ]
   },
   "devDependencies": {
@@ -72,6 +73,7 @@
     "qs": "^6.13.0",
     "radash": "^12.1.0",
     "socks-proxy-agent": "^8.0.4",
+    "technicalindicators": "github:wahack/technicalindicators",
     "viem": "^2.21.8"
   }
 }

@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { pick } from 'radash';
 import qs from 'qs';
 import BaseExchange from './exchange.abstract';
-import { Ticker, ApiKeys, Market, Order, OrderBook } from './types';
+import { Ticker, ApiKeys, Market, Order, OrderBook, OHLCV } from './types';
 import getAgent  from './agent';
 import muder from './helpers/muder';
 import { ExchangeError } from './helpers/error';
@@ -154,6 +154,26 @@ export default class Binance extends BaseExchange {
 			asks: response.data.asks.map((item: any) => [+item[0], +item[1]]),
 			bids: response.data.bids.map((item: any) => [+item[0], +item[1]])
 		}
+	}
+
+	static async fetchOHLCV (socksProxy: string, symbol: string, timeframe = '1m', since: number, limit: number, params = {}): Promise<OHLCV[]> {
+		const market = this.getMarket(symbol);
+		let url = UNIFIED_URL;
+		if (market.marketType === 'spot') {
+			url = SPOT_URL + '/api/v3/klines';
+		} else if (market.marketType === 'linear') {
+			url = LINEAR_URL + '/fapi/v1/klines';
+		}
+
+		const response = await requestInstance.get(url, {
+			params: {
+				symbol: market.symbol,
+				interval: timeframe,
+				limit
+			},
+			httpsAgent: getAgent(socksProxy)
+		});
+		return response.data.map((item: any) => [+item[0], +item[1], +item[2], +item[3], +item[4], +item[5]])
 	}
 
 	/** ---- Private API ---- */

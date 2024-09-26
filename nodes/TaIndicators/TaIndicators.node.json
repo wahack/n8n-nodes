@@ -1,0 +1,14 @@
+{
+	"node": "n8n-nodes-turtle.taIndicators",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"details": "taIndicators",
+	"categories": ["ta"],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/wahack/technicalindicators"
+			}
+		]
+	}
+}

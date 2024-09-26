@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { isEmpty, pick } from 'radash';
 import qs from 'qs';
 import BaseExchange from './exchange.abstract';
-import { Ticker, ApiKeys, Market, Order, OrderBook } from './types';
+import { Ticker, ApiKeys, Market, Order, OrderBook, OHLCV } from './types';
 import getAgent  from './agent';
 import muder from './helpers/muder';
 import { ExchangeError, NetworkRequestError } from './helpers/error';
@@ -161,6 +161,34 @@ export default class Bybit extends BaseExchange {
 			bids: response.data.result.b.map((item: any) => [+item[0], +item[1]])
 		}
 	}
+
+	static async fetchOHLCV (socksProxy: string, symbol: string, timeframe = '1m', since: number, limit: number, params = {}): Promise<OHLCV[]> {
+		const market = this.getMarket(symbol);
+		// map timeframe to bybit timeframe
+		const timeframeMap = {
+			'1m': '1',
+			'3m': '3',
+			'5m': '5',
+			'15m': '15',
+			'30m': '30',
+			'1h': '60',
+			'4h': '240',
+			'1d': 'D',
+			'1w': 'W',
+			'1M': 'M'
+		};
+		const response = await requestInstance.get('/v5/market/kline', {
+			params: {
+				category: market.marketType,
+				symbol: market.symbol,
+				interval: timeframeMap[timeframe as keyof typeof timeframeMap],
+				limit
+			},
+			httpsAgent: getAgent(socksProxy)
+		});
+		return response.data.result.list.map((item: any) => [+item[0], +item[1], +item[2], +item[3], +item[4], +item[5]])
+	}
+
 
 	/** ---- Private API ---- */
 	static async fetchBalance(socksProxy: string, apiKeys: ApiKeys, coin?: string): Promise<any> {

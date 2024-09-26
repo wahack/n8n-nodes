@@ -24,7 +24,7 @@ const properties: INodeProperties[] = [
 		name: 'timeframe',
 		type: 'string',
 		default: '1h',
-		description: '1m, 15m, 30m, 1h, 4h, 1d, 1w',
+		description: '1m,3m, 5m, 15m, 30m, 1h, 4h, 1d, 1w',
 		required: true,
 	},
 	{
@@ -68,7 +68,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),
 				// @ts-ignore
-				this.helpers.returnJsonArray(responseData as IDataObject),
+				this.helpers.returnJsonArray({list: responseData} as IDataObject),
 
 				{ itemData: { item: i } },
 			);
