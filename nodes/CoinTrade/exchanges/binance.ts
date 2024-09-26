@@ -186,7 +186,7 @@ export default class Binance extends BaseExchange {
 			params,
 			httpsAgent: getAgent(socksProxy)
 		});
-		console.log(response.headers);
+		// console.log(response.headers);
 
 		return {
 			info: response.data.result,

@@ -186,7 +186,7 @@ export default class Bybit extends BaseExchange {
 			},
 			httpsAgent: getAgent(socksProxy)
 		});
-		return response.data.result.list.map((item: any) => [+item[0], +item[1], +item[2], +item[3], +item[4], +item[5]])
+		return response.data.result.list.reverse().map((item: any) => [+item[0], +item[1], +item[2], +item[3], +item[4], +item[5]])
 	}
 
 

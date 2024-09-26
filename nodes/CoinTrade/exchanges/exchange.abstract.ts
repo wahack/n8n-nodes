@@ -63,6 +63,7 @@ export default class BaseExchange {
 	static async fetchOrderBook(socksProxy: string, symbol: string, limit: number): Promise<OrderBook> {
 		throw new Error('Not implemented');
 	}
+	// The list of candles is returned sorted in ascending (historical/chronological) order, oldest candle first, most recent candle last.
 	static async fetchOHLCV (socksProxy: string, symbol: string, timeframe = '1m', since: number, limit: number, params = {}): Promise<OHLCV[]> {
 		throw new Error('Not implemented');
 	}
