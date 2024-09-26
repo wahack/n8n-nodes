@@ -7,7 +7,7 @@ import {
 
 } from 'n8n-workflow';
 
-import * as technicalindicators from 'technicalindicators'
+import * as technicalindicators from '@wahack/technicalindicators'
 import {get} from 'radash'
 
 

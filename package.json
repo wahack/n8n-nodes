@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-turtle",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "no description",
   "keywords": [
     "n8n-community-node-package"
@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@bluefin-exchange/bluefin-v2-client": "^5.4.5",
+    "@wahack/technicalindicators": "^3.1.1",
     "axios": "^1.7.4",
     "axios-retry": "^4.5.0",
     "bignumber.js": "^9.1.2",
@@ -73,7 +74,6 @@
     "qs": "^6.13.0",
     "radash": "^12.1.0",
     "socks-proxy-agent": "^8.0.4",
-    "technicalindicators": "github:wahack/technicalindicators",
     "viem": "^2.21.8"
   }
 }
