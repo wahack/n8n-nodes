@@ -271,7 +271,7 @@ export default class Binance extends BaseExchange {
 		if (market.marketType === 'spot') {
 			url = SPOT_URL + '/api/v3/order';
 		}
-		const { method, params, headers } = this.sign(apiKeys, url, 'POST', undefined, {symbol: market.symbol,  price, side: side.toUpperCase(),quantity: amount,type: type.toUpperCase(), ...paramsExtra});
+		const { method, params, headers } = this.sign(apiKeys, url, 'POST', {symbol: market.symbol,  price, side: side.toUpperCase(),quantity: amount,type: type.toUpperCase(), ...paramsExtra});
 		const response = await requestInstance(url, {
 			method,
 			headers,
