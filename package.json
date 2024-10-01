@@ -44,7 +44,8 @@
       "dist/nodes/CoinTrade/CoinTrade.node.js",
       "dist/nodes/CoinTrade/CoinTradeTrigger.node.js",
       "dist/nodes/FormIoCustom/FormIoCustom.node.js",
-      "dist/nodes/TaIndicators/TaIndicators.node.js"
+      "dist/nodes/TaIndicators/TaIndicators.node.js",
+      "dist/nodes/CryptoWallet/CryptoWallet.node.js"
     ]
   },
   "devDependencies": {
@@ -65,10 +66,13 @@
   },
   "dependencies": {
     "@bluefin-exchange/bluefin-v2-client": "^5.4.5",
+    "@mysten/sui": "^1.11.0",
     "@wahack/technicalindicators": "^3.1.1",
     "axios": "^1.7.4",
     "axios-retry": "^4.5.0",
     "bignumber.js": "^9.1.2",
+    "bip39": "^3.1.0",
+    "ethers": "^6.13.3",
     "moment-timezone": "^0.5.45",
     "muder": "^0.2.0",
     "qs": "^6.13.0",

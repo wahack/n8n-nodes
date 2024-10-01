@@ -29,6 +29,7 @@
 		"types/**/*"
 	],
 	"exclude": [
+		"nodes/test/**/*",
 		"nodes/CoinTrade/test/**/*"
 	]
 }
