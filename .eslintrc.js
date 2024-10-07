@@ -19,7 +19,7 @@ module.exports = {
 	},
 
 
-	ignorePatterns: ['.eslintrc.js', '**/*.js', '**/node_modules/**', '**/dist/**', "nodes/CoinTrade/test/**"],
+	ignorePatterns: ['.eslintrc.js', '**/*.js', '**/node_modules/**', '**/dist/**', "nodes/CoinTrade/test/**", "nodes/test/**"],
 
 	overrides: [
 		{

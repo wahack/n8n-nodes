@@ -31,10 +31,10 @@ const properties: INodeProperties[] = [
 		description: 'The algorithm to use for the wallet',
 		options: [
 			{
-				name: 'secp256k1',
+				name: 'Secp256k1',
 				value: 'secp256k1',
 			}, {
-				name: 'ed25519',
+				name: 'Ed25519',
 				value: 'ed25519',
 			}
 		]
