@@ -97,7 +97,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 				proxy,
 				credentials as ApiKeys,
 				path.trim(),
-				method.toUpperCase(),
+				method,
 				data
 			)
 
