@@ -57,6 +57,10 @@ export class CoinTradeTrigger implements INodeType {
 					{
 						name: 'Gate',
 						value: 'gate',
+					},
+					{
+						name: 'Kucoin',
+						value: 'kucoin',
 					}
 				],
 				default: 'binance',

@@ -72,14 +72,16 @@ const properties: INodeProperties[] = [
 		name: 'quantityUnit',
 		type: 'options',
 		default: 'count',
+		description: '一般为币的数量,特殊情况: bitget/gate现货市场价买入时, 数量单位为金额(Usdt); gate合约数量单位为张',
 		options: [
 			{
-				name: "币数量(个)",
+				name: "数量",
 				value: "count"
-			}, {
-				name: '金额(Usdt)',
-				value: 'usdt'
 			}
+			// , {
+			// 	name: '金额(Usdt)',
+			// 	value: 'usdt'
+			// }
 		]
 	},{
 		displayName: 'Price',

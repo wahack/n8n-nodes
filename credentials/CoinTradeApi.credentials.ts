@@ -41,6 +41,10 @@ export class CoinTradeApi implements ICredentialType {
 				{
 					name: 'bluefin',
 					value: 'bluefin'
+				},
+				{
+					name: 'kucoin',
+					value: 'kucoin'
 				}
 			]
 		},
@@ -75,7 +79,7 @@ export class CoinTradeApi implements ICredentialType {
 			},
 			displayOptions: {
 				show: {
-					 platform: ['okx', 'bitget']
+					 platform: ['okx', 'bitget', 'kucoin']
 				}
 			}
 		},
