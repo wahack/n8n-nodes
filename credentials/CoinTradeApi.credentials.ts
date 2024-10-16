@@ -4,7 +4,8 @@ import {
 	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	// IAuthenticate,
-	IHttpRequestOptions
+	IHttpRequestOptions,
+	Icon
 } from 'n8n-workflow';
 import exchanges from '../nodes/CoinTrade/exchanges';
 
@@ -14,6 +15,7 @@ export class CoinTradeApi implements ICredentialType {
 	name = 'coinTradeApi';
 	displayName = 'CoinTrade API';
 	// documentationUrl = '<your-docs-url>';
+	icon: Icon = 'file:icons/cointrade.svg';
 	properties: INodeProperties[] = [
 		{
 			displayName: '交易所',
