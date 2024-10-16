@@ -4,8 +4,8 @@ import {
 	INodeProperties,
 	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
-	IHttpRequestOptions
-
+	IHttpRequestOptions,
+	Icon
 } from 'n8n-workflow';
 
 const jwtCached: Map<string, {jwt: string, expireAt: number}> = new Map();
@@ -13,6 +13,7 @@ const jwtCached: Map<string, {jwt: string, expireAt: number}> = new Map();
 export class FormIoCustomApi implements ICredentialType {
 	name = 'formIoCustomApi';
 	displayName = 'FormIoCustom API';
+	icon: Icon = 'file:icons/FormIoCustom.svg';
 	// documentationUrl = '<your-docs-url>';
 	properties: INodeProperties[] = [
 		{
