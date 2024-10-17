@@ -160,16 +160,16 @@ export default class Kucoin extends BaseExchange {
 		if (market.marketType === 'spot') {
 			url = SPOT_URL + '/api/v1/orders';
 		} else if (market.marketType === 'linear') {
-			url = LINEAR_URL + '/api/v1/order';
+			url = LINEAR_URL + '/api/v1/orders';
 		}
-		const data = {clientOid: uuidv4(), symbol: market.symbol, side, size: amount,type}
+		const body = {clientOid: uuidv4(), symbol: market.symbol, side, size: amount,type}
 		// @ts-ignore
-		if (price) data.price = price
-		const { method, params, headers } = this.sign(apiKeys, url, 'POST', data);
+		if (price) body.price = price
+		const { method, headers, data } = this.sign(apiKeys, url, 'POST', undefined, body);
 		const response = await requestInstance(url, {
 			method,
 			headers,
-			params,
+			data,
 			httpsAgent: getAgent(socksProxy)
 		});
 		return muder(response.data.data, {info: response.data, symbol}, {

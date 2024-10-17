@@ -59,6 +59,9 @@ export const description: INodeTypeDescription = {
 				{
 					name: 'Gate',
 					value: 'gate',
+				},{
+					name: 'Kucoin',
+					value: 'kucoin',
 				},
 				{
 					name: 'Bluefin',
