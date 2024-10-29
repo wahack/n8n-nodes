@@ -61,6 +61,9 @@ export class CoinTradeTrigger implements INodeType {
 					{
 						name: 'Kucoin',
 						value: 'kucoin',
+					},{
+						name: 'Polymarket',
+						value: 'polymarket'
 					}
 				],
 				default: 'binance',

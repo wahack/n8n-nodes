@@ -47,6 +47,9 @@ export class CoinTradeApi implements ICredentialType {
 				{
 					name: 'kucoin',
 					value: 'kucoin'
+				},{
+					name: 'polymarket',
+					value: 'polymarket'
 				}
 			]
 		},
@@ -81,7 +84,7 @@ export class CoinTradeApi implements ICredentialType {
 			},
 			displayOptions: {
 				show: {
-					 platform: ['okx', 'bitget', 'kucoin']
+					 platform: ['okx', 'bitget', 'kucoin', 'polymarket']
 				}
 			}
 		},

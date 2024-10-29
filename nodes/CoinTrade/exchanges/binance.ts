@@ -8,7 +8,7 @@ import { Ticker, ApiKeys, Market, Order, OrderBook, OHLCV } from './types';
 import getAgent  from './agent';
 import muder from './helpers/muder';
 import { ExchangeError } from './helpers/error';
-import { get } from 'lodash';
+import { get } from 'radash';
 import BigNumber from 'bignumber.js';
 
 const UNIFIED_URL = 'https://papi.binance.com';

@@ -31,6 +31,7 @@ export type OrderBook = {
 	asks: [number, number][];
 	/**降序*/
 	bids: [number, number][];
+	info?: any
 }
 
 

@@ -94,6 +94,9 @@ export default class BaseExchange {
 	static async customRequest(socksProxy: string, apikeys: ApiKeys, path: string, method: string, data: any): Promise<any> {
 		throw new Error('Not implemented');
 	}
+	static async customMethodCall(socksProxy: string, apikeys: ApiKeys, method: string, data: any[]): Promise<any> {
+		throw new Error('Not implemented');
+	}
 	static async withdraw(socksProxy: string, apikeys: ApiKeys, path: string, method: string, data: any, tag: string, network: string): Promise<any> {
 		throw new Error('Not implemented');
 	}
