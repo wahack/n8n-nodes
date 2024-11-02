@@ -72,10 +72,10 @@ export const getOrderRawAmounts = (
 	side: Side,
 	size: number,
 	price: number,
-	tickSize: TickSize = "0.01"
+	tickSize: TickSize = "0.001"
 ): {makerAmount: string; takerAmount: string } => {
 
-	const roundConfig = ROUNDING_CONFIG[tickSize || '0.01']
+	const roundConfig = ROUNDING_CONFIG[tickSize || '0.001']
 	const rawPrice = roundNormal(price, roundConfig.price);
 
 	if (side === Side.BUY) {

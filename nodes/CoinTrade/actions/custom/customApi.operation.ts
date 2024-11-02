@@ -34,6 +34,7 @@ const properties: INodeProperties[] = [
 		name: 'method',
 		type: 'options',
 		default: 'get',
+		// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 		options: [
 			{
 				name: 'Get',
@@ -47,12 +48,29 @@ const properties: INodeProperties[] = [
 				name: 'Put',
 				value: 'put'
 			},
+			{
+				name: 'Patch',
+				value: 'patch'
+			},
+			{
+				name: 'Delete',
+				value: 'delete'
+			},
 		],
 		required: true,
 	},
 	{
 		displayName: 'Data',
 		name: 'data',
+		type: 'json',
+		typeOptions: {
+			alwaysOpenEditWindow: true,
+		},
+		default: '{}'
+	},
+	{
+		displayName: 'ParamsExtra',
+		name: 'params',
 		type: 'json',
 		typeOptions: {
 			alwaysOpenEditWindow: true,
@@ -92,13 +110,15 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const method = this.getNodeParameter('method', i) as string;
 			const data = validateJSON(this.getNodeParameter('data', i) as string);
 
+			const paramsExtra = validateJSON(this.getNodeParameter('params', i) as string);
 
 			const responseData = await exchangesV2[this.getNodeParameter('platform', i) as string].customRequest(
 				proxy,
 				credentials as ApiKeys,
 				path.trim(),
 				method,
-				data
+				data,
+				paramsExtra
 			)
 
 			const executionData = this.helpers.constructExecutionMetaData(

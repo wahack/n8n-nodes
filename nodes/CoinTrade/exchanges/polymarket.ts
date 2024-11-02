@@ -364,6 +364,23 @@ export default class Polymarket extends BaseExchange {
 		}
 	}
 
+	static async cancelAllOrders(socksProxy: string, _apiKeys: ApiKeys | undefined,  symbol: string, paramsExtra: any): Promise<Order> {
+		const url = SPOT_URL + '/cancel-all';
+		const apiKeys = _apiKeys || paramsExtra.apiKeys;
+		const account = privateKeyToAccount(paramsExtra.privateKey as `0x${string}`)
+
+
+		const { method, headers } = this.sign(apiKeys, account, url, 'DELETE', undefined);
+		const response = await requestInstance(url, {
+			method,
+			headers,
+			httpsAgent: getAgent(socksProxy)
+		});
+		const data = response.data
+		// @ts-ignore
+		return data
+	}
+
 	/** --- custom api request ---- */
 	static async customRequest(socksProxy: string, _apiKeys: ApiKeys | undefined, url: string, method: string, params: any,  paramsExtra?: any) {
 		const apiKeys = _apiKeys || paramsExtra.apiKeys;
@@ -411,15 +428,6 @@ export default class Polymarket extends BaseExchange {
 // 		// 	},
 // 		// 	"privateKey": ""
 // 		// }));
-// 		console.log(await Polymarket.fetchOrder('socks://127.0.0.1:7890',undefined,'','', {
-// 			"apiKeys": {
-// 				apiKey: '',
-// 				secret: '',
-// 				"password":
-// 				""
-// 			},
-// 			"privateKey": ""
-// 		}));
 // }
 
 // test();

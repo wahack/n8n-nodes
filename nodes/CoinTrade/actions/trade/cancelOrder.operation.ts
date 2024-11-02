@@ -60,8 +60,13 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	const returnData: INodeExecutionData[] = [];
 	const length = items.length;
 
-	const credentials = await this.getCredentials('coinTradeApi');
+	let credentials;
 
+	try {
+		credentials = await this.getCredentials('coinTradeApi');
+	} catch (e) {
+
+	}
 
 	for (let i = 0; i < length; i++) {
 		try {
