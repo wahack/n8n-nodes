@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import qs from 'qs';
 
 import BaseExchange from './exchange.abstract';
-import { Ticker, ApiKeys, OrderBook } from './types';
+import { Ticker, ApiKeys, OrderBook, Order } from './types';
 import getAgent from './agent';
 import { ExchangeError } from './helpers/error';
 import { get } from 'radash';
@@ -300,17 +300,19 @@ export default class Polymarket extends BaseExchange {
 		}
 		const order = {
 			taker: '0x0000000000000000000000000000000000000000',
-			maker: account.address,
+			maker: paramsExtra.safeAddress,
 			signer: account.address,
 			nonce: '0',
 			expiration: '0',
-			signatureType: 0, //EOA
+			signatureType: 2, //0 EOA POLY_PROXY 1  POLY_GNOSIS_SAFE 2
 			salt: Math.round(Math.random() * Date.now()),
 			tokenId: symbol, // '21742633143463906290569050155826241533067272736897614950488156847949938836455',
 			feeRateBps:'0',
 			...getOrderRawAmounts(side.toUpperCase() as Side, amount, price || 1, paramsExtra.tickSize),
 			side: side.toUpperCase()
 		}
+		// console.log(order);
+
 		// @ts-ignore
 		order.signature = await this.buildOrderSignature(account, order)
 		// console.log(order)
@@ -330,8 +332,38 @@ export default class Polymarket extends BaseExchange {
 			params: { geo_block_token: undefined },
 			httpsAgent: getAgent(socksProxy)
 		});
-		return response.data
+		return {
+			id: response.data.orderID,
+			symbol
+		}
 	}
+
+
+	static async fetchOrder(socksProxy: string, _apiKeys: ApiKeys | undefined, orderId: string, symbol: string, paramsExtra: any): Promise<Order> {
+		const url = SPOT_URL + '/data/order/' + orderId;
+		const apiKeys = _apiKeys || paramsExtra.apiKeys;
+		const account = privateKeyToAccount(paramsExtra.privateKey as `0x${string}`)
+
+
+		const { method, headers } = this.sign(apiKeys, account, url, 'GET', undefined);
+		const response = await requestInstance(url, {
+			method,
+			headers,
+			httpsAgent: getAgent(socksProxy)
+		});
+		const data = response.data
+		// @ts-ignore
+		return {
+			id: data.id,
+			status: data.status === 'MATCHED' ? 'closed' : 'open',
+			price: data.price,
+			side: data.side.toLowerCase(),
+			amount: data.size_matched,
+			symbol: data.asset_id,
+			info: data
+		}
+	}
+
 	/** --- custom api request ---- */
 	static async customRequest(socksProxy: string, _apiKeys: ApiKeys | undefined, url: string, method: string, params: any,  paramsExtra?: any) {
 		const apiKeys = _apiKeys || paramsExtra.apiKeys;
@@ -369,9 +401,25 @@ export default class Polymarket extends BaseExchange {
 // 	// console.log(await Kucoin.fetchClosedOrders('', apiKeys, 'BTC/USDT:USDT',undefined,20));
 // 	// console.log(await Kucoin.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.001, 63000));
 // 	// console.log(await Kucoin.cancelOrder('socks://127.0.0.1:7890', apiKeys, 'c775afc3-6c6a-4cb9-944e-c13a1faac92b', 'BTC/USDT:USDT'));
-// 	// console.log(await Polymarket.deriveApiKey('socks://127.0.0.1:7890',undefined,'0xxx'));
-// 		// console.log(await Polymarket.createOrder('socks://127.0.0.1:7890',,apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.001, 6300));
-
+// 	// console.log(await Polymarket.createApiKey('socks://127.0.0.1:7890',undefined,''));
+// 		// console.log(await Polymarket.createOrder('socks://127.0.0.1:7890',undefined, '48331043336612883890938759509493159234755048973500640148014422747788308965732', 'limit', 'buy', 5, 0.429, {
+// 		// 	"apiKeys": {
+// 		// 		apiKey: 'fa4f6af0-356e-fb3d-8efe-48b8a1996d60',
+// 		// 		secret: '=',
+// 		// 		"password":
+// 		// 		""
+// 		// 	},
+// 		// 	"privateKey": ""
+// 		// }));
+// 		console.log(await Polymarket.fetchOrder('socks://127.0.0.1:7890',undefined,'','', {
+// 			"apiKeys": {
+// 				apiKey: '',
+// 				secret: '',
+// 				"password":
+// 				""
+// 			},
+// 			"privateKey": ""
+// 		}));
 // }
 
 // test();

@@ -72,14 +72,16 @@ export const getOrderRawAmounts = (
 	side: Side,
 	size: number,
 	price: number,
-	tickSize: TickSize = "0.1"
+	tickSize: TickSize = "0.01"
 ): {makerAmount: string; takerAmount: string } => {
 
-	const roundConfig = ROUNDING_CONFIG[tickSize || '0.1']
+	const roundConfig = ROUNDING_CONFIG[tickSize || '0.01']
 	const rawPrice = roundNormal(price, roundConfig.price);
 
 	if (side === Side.BUY) {
 			// force 2 decimals places
+			// console.log('=======by');
+
 			const rawTakerAmt = roundDown(size, roundConfig.size);
 
 			let rawMakerAmt = rawTakerAmt * rawPrice;
@@ -91,10 +93,12 @@ export const getOrderRawAmounts = (
 			}
 
 			return {
-				makerAmount:  parseUnits(rawMakerAmt.toString(), COLLATERAL_TOKEN_DECIMALS).toString(),
+				makerAmount: parseUnits(rawMakerAmt.toString(), COLLATERAL_TOKEN_DECIMALS).toString(),
 				takerAmount: parseUnits(rawTakerAmt.toString(), CONDITIONAL_TOKEN_DECIMALS).toString()
 		};
 	} else {
+		// console.log('fffff');
+
 			const rawMakerAmt = roundDown(size, roundConfig.size);
 
 			let rawTakerAmt = rawMakerAmt * rawPrice;
@@ -113,3 +117,9 @@ export const getOrderRawAmounts = (
 			};
 	}
 };
+
+//
+// console.log(getOrderRawAmounts(Side.BUY, 1.69, 0.338))
+// console.log(getOrderRawAmounts(Side.BUY, 1.69, 0.338, '0.01'))
+// console.log(getOrderRawAmounts(Side.BUY, 1.69, 0.338, '0.001'))
+
