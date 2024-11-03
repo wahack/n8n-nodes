@@ -46,6 +46,13 @@ const properties: INodeProperties[] = [
 		default: "m/44\'/60\'/0\'/0/0",
 		description: 'The path to derive the wallet from',
 		hint: "派生路径 ___EVM___: m/44'/60'/0'/0/0 ___SUI___: m/44'/784'/0'/0'/0'",
+	}, {
+		displayName: '密码',
+		name: 'password',
+		// eslint-disable-next-line n8n-nodes-base/node-param-type-options-password-missing
+		type: 'string',
+		default: '',
+		description: 'The password to generate a wallet',
 	}
 ];
 
@@ -69,11 +76,12 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const mnemonic = this.getNodeParameter('mnemonic', i) as string;
 			const algorithm = this.getNodeParameter('algorithm', i) as string;
 			const path = this.getNodeParameter('path', i) as string;
+			const pwd = this.getNodeParameter('password', i) as string;
 			let secretKey: string;
 			let publicKey: string;
 			let address: string;
 			if (algorithm === 'secp256k1') {
-				const  wallet =  ethers.HDNodeWallet.fromPhrase(mnemonic, '', path);
+				const  wallet =  ethers.HDNodeWallet.fromPhrase(mnemonic, pwd || '', path);
 				secretKey = wallet.privateKey;
 				publicKey = wallet.publicKey;
 				address = wallet.address;
