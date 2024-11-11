@@ -166,10 +166,14 @@ export default class Bitget extends BaseExchange {
 			body.marginMode = 'crossed';
 			// @ts-ignore
 			body.marginCoin = 'USDT';
+			// @ts-ignore
+			body.productType = 'USDT-FUTURES';
+
 		}
 		// @ts-ignore
-		if (price) data.price = price
+		if (price) body.price = price
 		const { method,  headers, data } = this.sign(apiKeys, url, 'POST', undefined, body);
+
 		const response = await requestInstance(url, {
 			method,
 			headers,
@@ -202,11 +206,10 @@ export default class Bitget extends BaseExchange {
 
 // async function test() {
 // 	const apiKeys = {
-// 		apiKey: '',
-// 		secret: ''
+
 // 	}
-// 	console.log(await Bitget.fetchTicker('socks://127.0.0.1:7890', 'BTC/USDT'));
-// 	// console.log(await Bitget.fetchBalance('', apiKeys));
+// 	// console.log(await Bitget.fetchTicker('socks://127.0.0.1:7890', 'BTC/USDT'));
+// 	console.log(await Bitget.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.01, 70000));
 // 	// console.log(await Bitget.fetchClosedOrders('', apiKeys, 'BTC/USDT:USDT',undefined,20));
 // 	// console.log(await Bitget.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.001, 63000));
 // 	// console.log(await Bitget.cancelOrder('socks://127.0.0.1:7890', apiKeys, 'c775afc3-6c6a-4cb9-944e-c13a1faac92b', 'BTC/USDT:USDT'));
