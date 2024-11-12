@@ -72,6 +72,6 @@ export type Order = {
 	amount: number;
 	side: 'buy' | 'sell';
 	type: 'limit' | 'market';
-	status: 'cancelled' | 'open' | 'closed' | 'rejected' | 'expired';
+	status: 'canceled' | 'open' | 'closed' | 'rejected' | 'expired';
 	timestamp: number;
 }

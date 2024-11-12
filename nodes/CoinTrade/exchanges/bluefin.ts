@@ -65,7 +65,7 @@ export default class Bluefin extends BaseExchange {
 			[ORDER_STATUS.STAND_BY]: 'open',
 			[ORDER_STATUS.STAND_BY_PENDING]: 'open',
 			OPEN: 'open',//(not filled or partially filled)
-			CANCELLED: 'canceled',
+			[ORDER_STATUS.CANCELLED]: 'canceled',
 			EXPIRED: "expired",
 			REJECTED: "rejected",
 			FILLED: "closed"
@@ -243,7 +243,7 @@ export default class Bluefin extends BaseExchange {
 			return  {
 				id: orderId,
 				clientOrderId: '',
-				status: 'cancelled',
+				status: 'canceled',
 				// @ts-ignore
 				side: '',
 				// @ts-ignore
@@ -322,6 +322,7 @@ export default class Bluefin extends BaseExchange {
 			quantity: amount,
 			orderType: type.toUpperCase(),
 			leverage: paramsExtra?.leverage || 5,
+			...paramsExtra
 		}
 		// @ts-ignore
 		const res = await client.postOrder(orderParams);
