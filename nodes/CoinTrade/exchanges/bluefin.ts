@@ -47,6 +47,8 @@ axiosRetry(requestInstance, {
 
 export default class Bluefin extends BaseExchange {
 	name = 'Bluefin';
+	static clients = new Map<string, BluefinClient>();
+
 	/** ---- Helper functions ---- */
 	static checkRequiredCredentials(apiKeys: ApiKeys): boolean {
 		if(!apiKeys || !apiKeys.apiKey || !apiKeys.secret) {
@@ -84,13 +86,7 @@ export default class Bluefin extends BaseExchange {
 
 	static async sign(apiKeys: ApiKeys, url: string, method: string, params?: any, data?: any, headers?: any) {
 		this.checkRequiredCredentials(apiKeys);
-		const client = new BluefinClient(
-			true,
-			Networks.PRODUCTION_SUI,
-			'0x' + apiKeys.secret,
-			"ED25519" //valid values are ED25519 or Secp256k1
-		); //passing isTermAccepted = true for compliance and authorizarion
-		await client.init();
+		const client = await this.getClient(apiKeys) as BluefinClient
 
 		// Uses key provided while initializing the client to generate the signature
 		const token  =  await client.userOnBoarding();
@@ -98,6 +94,21 @@ export default class Bluefin extends BaseExchange {
 		headers['Authorization'] = `Bearer ${token}`;
 		return  { url, method, data, headers, params };
 	}
+
+	static async getClient (apiKeys: ApiKeys): Promise<BluefinClient> {
+		const key = `${apiKeys.apiKey}-${apiKeys.secret}`;
+		if (this.clients.get(key)) return this.clients.get(key) as BluefinClient;
+		const client = new BluefinClient(
+			true,
+			Networks.PRODUCTION_SUI,
+			'0x' + apiKeys.secret,
+			"ED25519" //valid values are ED25519 or Secp256k1
+		); //passing isTermAccepted = true for compliance and authorizarion
+		await client.init();
+		this.clients.set(key, client);
+		return client;
+	}
+
 	// BTC/USDT => BTC-PERP
 	static getMarket(symbolInput: string): Market {
 		const market = BaseExchange.getMarket(symbolInput);
@@ -191,14 +202,66 @@ export default class Bluefin extends BaseExchange {
 
 	static async fetchOrder(socksProxy: string, apiKeys: ApiKeys, orderId: string, symbol: string, paramsExtra: any): Promise<Order> {
 		const market = this.getMarket(symbol);
-		const { url, method, headers, params } =  await this.sign(apiKeys, '/orders', 'GET', {symbol: market.symbol, orderId});
-		const response = await requestInstance(url, {
-			method,
-			headers,
-			params,
-			httpsAgent: getAgent(socksProxy)
-		});
-		return this.parseOrder(response.data[0], symbol)
+		// const { url, method, headers, params } =  await this.sign(apiKeys, '/orders', 'GET', {symbol: market.symbol, orderId});
+		// const response = await requestInstance(url, {
+		// 	method,
+		// 	headers,
+		// 	params,
+		// 	httpsAgent: getAgent(socksProxy)
+		// });
+		const client = await this.getClient(apiKeys)
+		const res = await client.getUserOrders({
+			orderId: +orderId,
+			statuses: [ORDER_STATUS.PENDING, ORDER_STATUS.CANCELLED, ORDER_STATUS.FILLED, ORDER_STATUS.OPEN, ORDER_STATUS.PARTIAL_FILLED]
+		})
+		if (res.data[0]) {
+			return this.parseOrder(res.data[0], symbol)
+		}
+		const history = await client.getUserTradesHistory({
+			symbol: market.symbol,
+			limit: 5
+			// startTime: Date.now() - 24 * 60 * 60 * 1000
+		})
+		const traded = history.data.data.find(o => o.orderId == +orderId)
+		if (traded) {
+			return {
+				id: orderId,
+				clientOrderId: traded.clientId,
+				status: 'closed',
+				// @ts-ignore
+				side: traded.side.toLocaleLowerCase(),
+				// @ts-ignore
+				type: traded.associatedOrderType,
+				price: +formatUnits(BigInt(traded.price), 18),
+				average: +formatUnits(BigInt(traded.price), 18),
+				amount: +formatUnits(BigInt(traded.quantity), 18),
+				filled:  +formatUnits(BigInt(traded.quantity), 18),
+				remaining: 0
+			}
+		} else {
+			// canceled
+			return  {
+				id: orderId,
+				clientOrderId: '',
+				status: 'cancelled',
+				// @ts-ignore
+				side: '',
+				// @ts-ignore
+				type: '',
+				price: 0,
+				average: 0,
+				amount: 0,
+				filled:  0,
+				remaining: 0
+			}
+		}
+		// if (!res.data[0]) {
+		// 	return {
+		// 		id: orderId,
+		// 		status: 'cancelled',
+
+		// 	}
+		// }
 	}
 
 	static async fetchOpenOrders(socksProxy: string, apiKeys: ApiKeys, symbol: string, since: number | undefined, limit: number, paramsExtra?: any): Promise<Order[]> {
@@ -228,15 +291,10 @@ export default class Bluefin extends BaseExchange {
 	static async cancelOrder(socksProxy: string, apiKeys: ApiKeys, orderId: string, symbol: string, paramsExtra?: any) {
 		const market = this.getMarket(symbol);
 		this.checkRequiredCredentials(apiKeys);
-		const client = new BluefinClient(
-			true,
-			Networks.PRODUCTION_SUI,
-			'0x' + apiKeys.secret,
-			"ED25519" //valid values are ED25519 or Secp256k1
-		);
+		const client = await this.getClient(apiKeys) as BluefinClient
 		// @ts-ignore
-		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
-		await client.init();
+		// client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		// await client.init();
 		const res = await client.postCancelOrder({
 			// @ts-ignore
 			hashes: [paramsExtra.orderHash],
@@ -252,22 +310,18 @@ export default class Bluefin extends BaseExchange {
 	static async createOrder(socksProxy: string, apiKeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, paramsExtra?: any): Promise<any> {
 		const market = this.getMarket(symbol);
 		this.checkRequiredCredentials(apiKeys);
-		const client = new BluefinClient(
-			true,
-			Networks.PRODUCTION_SUI,
-			'0x' + apiKeys.secret,
-			"ED25519" //valid values are ED25519 or Secp256k1
-		);
+		const client = await this.getClient(apiKeys) as BluefinClient
+
 		// @ts-ignore
-		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
-		await client.init();
+		// client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		// await client.init();
 		const orderParams = {
 			symbol: market.symbol,
 			price: price || 0,
 			side: side.toUpperCase(),
 			quantity: amount,
 			orderType: type.toUpperCase(),
-			leverage: 5,
+			leverage: paramsExtra?.leverage || 5,
 		}
 		// @ts-ignore
 		const res = await client.postOrder(orderParams);
