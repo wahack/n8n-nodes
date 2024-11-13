@@ -169,7 +169,7 @@ export default class Gate extends BaseExchange {
 		if (market.marketType === 'spot') {
 			url = '/api/v4/spot/orders';
 			// @ts-ignore
-			body =  {currency_pair : market.symbol, side, amount, account:  'unified', type}
+			body =  {currency_pair : market.symbol, side, amount, account:  'spot', type, time_in_force: price ? 'gtc': 'ioc'}
 			// @ts-ignore
 			if (price) body.price = price;
 		} else if (market.marketType === 'linear') {

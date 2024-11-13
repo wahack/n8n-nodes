@@ -8,6 +8,7 @@ import { ExchangeError, NetworkRequestError } from './helpers/error';
 import BigNumber from 'bignumber.js';
 import { Networks, BluefinClient, ORDER_STATUS } from "@bluefin-exchange/bluefin-v2-client";
 import { formatUnits as _formatUnits } from 'viem';
+import { get } from 'radash';
 
 
 function formatUnits (a: bigint | number, b: number) {
@@ -218,6 +219,7 @@ export default class Bluefin extends BaseExchange {
 		// 	params,
 		// 	httpsAgent: getAgent(socksProxy)
 		// });
+		if (!orderId) throw new ExchangeError('params error: orderId is undefined')
 		const client = await this.getClient(apiKeys)
 		const res = await client.getUserOrders({
 			orderId: +orderId,
@@ -309,6 +311,7 @@ export default class Bluefin extends BaseExchange {
 			hashes: [paramsExtra.orderHash],
 			symbol: market.symbol
 		})
+		if (get(res.data, 'error.message')) throw new ExchangeError(get(res.data, 'error.message'))
 		return {
 			symbol,
 			info: res.data.data,
@@ -335,6 +338,7 @@ export default class Bluefin extends BaseExchange {
 		}
 		// @ts-ignore
 		const res = await client.postOrder(orderParams);
+		if (get(res.data, 'error.message')) throw new ExchangeError(get(res.data, 'error.message'))
 		return this.parseOrder(res.data, symbol)
 	}
  /** --- custom api request ---- */
