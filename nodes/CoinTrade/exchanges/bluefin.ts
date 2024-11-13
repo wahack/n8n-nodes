@@ -7,7 +7,16 @@ import muder from './helpers/muder';
 import { ExchangeError, NetworkRequestError } from './helpers/error';
 import BigNumber from 'bignumber.js';
 import { Networks, BluefinClient, ORDER_STATUS } from "@bluefin-exchange/bluefin-v2-client";
-import { formatUnits } from 'viem';
+import { formatUnits as _formatUnits } from 'viem';
+
+
+function formatUnits (a: bigint | number, b: number) {
+	try {
+		return _formatUnits(a ? BigInt(a) : BigInt(0), b)
+	} catch (e) {
+		return 0
+	}
+}
 
 
 const BASE_URL = 'https://dapi.api.sui-prod.bluefin.io';
@@ -76,11 +85,11 @@ export default class Bluefin extends BaseExchange {
 			status: (data: any) => orderStatus[data.orderStatus] || data.orderStatus,
 			side: 'side|toLower',
 			type: 'orderType|toLower',
-			price: (data: any) => +formatUnits(data.price, 18),
-			average: (data: any) => +formatUnits(data.avgFillPrice, 18),
-			amount: (data: any) => +formatUnits(data.quantity, 18),
-			filled:  (data: any) => +formatUnits(data.filledQty, 18),
-			remaining: (data: any) =>  new BigNumber(formatUnits(data.quantity, 18)).minus(formatUnits(data.filledQty, 18)).toNumber()
+			price: (data: any) => +formatUnits(data.price || 0, 18),
+			average: (data: any) => +formatUnits(data.avgFillPrice || 0, 18),
+			amount: (data: any) => +formatUnits(data.quantity || 0, 18),
+			filled:  (data: any) => +formatUnits(data.filledQty || 0, 18),
+			remaining: (data: any) =>  new BigNumber(formatUnits(data.quantity || 0, 18)).minus(formatUnits(data.filledQty || 0, 18)).toNumber()
 		})
 	}
 
