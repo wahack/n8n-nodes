@@ -60,7 +60,7 @@ export default class Gate extends BaseExchange {
 		// HexEncode(SHA512(Request data))
 		const hashPayload = crypto.createHash('sha512').update(data ? JSON.stringify(data) : '').digest('hex');
 
-		const signature = this.generateSignature(apiKeys, method.toUpperCase() + endpoint + query + hashPayload + timestamp);
+		const signature = this.generateSignature(apiKeys, method.toUpperCase() + '\n' + endpoint + '\n'+ query +'\n'+ hashPayload + '\n' + timestamp);
 
 		headers = headers || {};
 		headers['KEY'] = apiKeys.apiKey;
@@ -146,7 +146,8 @@ export default class Gate extends BaseExchange {
 
 	/** ---- Private API ---- */
 	static async fetchBalance(socksProxy: string, apiKeys: ApiKeys, coin?: string): Promise<any> {
-		const url = '/api/v4/unified/accounts';
+		// const url = '/api/v4/unified/accounts';
+		const url = '/api/v4/wallet/total_balance'
 		const { method, params, headers } = this.sign(apiKeys, url, 'GET', undefined);
 		const response = await requestInstance(url, {
 			method,
@@ -209,11 +210,9 @@ export default class Gate extends BaseExchange {
 
 // async function test() {
 // 	const apiKeys = {
-// 		apiKey: '',
-// 		secret: ''
 // 	}
 // 	// console.log(await Gate.fetchTicker('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
-// 	// console.log(await Bitget.fetchBalance('', apiKeys));
+// 	console.log(await Gate.fetchBalance('', apiKeys));
 // 	// console.log(await Bitget.fetchClosedOrders('', apiKeys, 'BTC/USDT:USDT',undefined,20));
 // 	// console.log(await Bitget.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.001, 63000));
 // 	// console.log(await Bitget.cancelOrder('socks://127.0.0.1:7890', apiKeys, 'c775afc3-6c6a-4cb9-944e-c13a1faac92b', 'BTC/USDT:USDT'));
