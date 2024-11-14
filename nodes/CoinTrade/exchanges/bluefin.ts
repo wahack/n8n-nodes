@@ -6,10 +6,10 @@ import getAgent  from './agent';
 import muder from './helpers/muder';
 import { ExchangeError, NetworkRequestError } from './helpers/error';
 import BigNumber from 'bignumber.js';
-import { Networks, BluefinClient, ORDER_STATUS } from "@bluefin-exchange/bluefin-v2-client";
+import { Networks, BluefinClient, ORDER_STATUS, TRANSFERABLE_COINS } from "@bluefin-exchange/bluefin-v2-client";
 import { formatUnits as _formatUnits } from 'viem';
 import { get } from 'radash';
-
+import { getWalletBalance, swap } from './helpers/cetus';
 
 function formatUnits (a: bigint | number, b: number) {
 	try {
@@ -96,7 +96,7 @@ export default class Bluefin extends BaseExchange {
 
 	static async sign(apiKeys: ApiKeys, url: string, method: string, params?: any, data?: any, headers?: any) {
 		this.checkRequiredCredentials(apiKeys);
-		const client = await this.getClient(apiKeys) as BluefinClient
+		const client = await this.getClient('', apiKeys) as BluefinClient
 
 		// Uses key provided while initializing the client to generate the signature
 		const token  =  await client.userOnBoarding();
@@ -105,7 +105,7 @@ export default class Bluefin extends BaseExchange {
 		return  { url, method, data, headers, params };
 	}
 
-	static async getClient (apiKeys: ApiKeys): Promise<BluefinClient> {
+	static async getClient (socksProxy: string, apiKeys: ApiKeys): Promise<BluefinClient> {
 		const key = `${apiKeys.apiKey}-${apiKeys.secret}`;
 		if (this.clients.get(key)) return this.clients.get(key) as BluefinClient;
 		const client = new BluefinClient(
@@ -114,7 +114,11 @@ export default class Bluefin extends BaseExchange {
 			'0x' + apiKeys.secret,
 			"ED25519" //valid values are ED25519 or Secp256k1
 		); //passing isTermAccepted = true for compliance and authorizarion
+
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		await client.init();
+
 		this.clients.set(key, client);
 		return client;
 	}
@@ -220,7 +224,9 @@ export default class Bluefin extends BaseExchange {
 		// 	httpsAgent: getAgent(socksProxy)
 		// });
 		if (!orderId) throw new ExchangeError('params error: orderId is undefined')
-		const client = await this.getClient(apiKeys)
+		const client = await this.getClient(socksProxy, apiKeys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		const res = await client.getUserOrders({
 			orderId: +orderId,
 			statuses: [ORDER_STATUS.PENDING, ORDER_STATUS.CANCELLED, ORDER_STATUS.FILLED, ORDER_STATUS.OPEN, ORDER_STATUS.PARTIAL_FILLED]
@@ -302,7 +308,9 @@ export default class Bluefin extends BaseExchange {
 	static async cancelOrder(socksProxy: string, apiKeys: ApiKeys, orderId: string, symbol: string, paramsExtra?: any) {
 		const market = this.getMarket(symbol);
 		this.checkRequiredCredentials(apiKeys);
-		const client = await this.getClient(apiKeys) as BluefinClient
+		const client = await this.getClient(socksProxy, apiKeys) as BluefinClient
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		// @ts-ignore
 		// client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		// await client.init();
@@ -322,11 +330,11 @@ export default class Bluefin extends BaseExchange {
 	static async createOrder(socksProxy: string, apiKeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, paramsExtra?: any): Promise<any> {
 		const market = this.getMarket(symbol);
 		this.checkRequiredCredentials(apiKeys);
-		const client = await this.getClient(apiKeys) as BluefinClient
+		const client = await this.getClient(socksProxy, apiKeys) as BluefinClient
 
 		// @ts-ignore
-		// client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
-		// await client.init();
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+
 		const orderParams = {
 			symbol: market.symbol,
 			price: price || 0,
@@ -341,6 +349,48 @@ export default class Bluefin extends BaseExchange {
 		if (get(res.data, 'error.message')) throw new ExchangeError(get(res.data, 'error.message'))
 		return this.parseOrder(res.data, symbol)
 	}
+
+	static async transfer (socksProxy: string, _apiKeys: ApiKeys, to: string, amount: number, coin: TRANSFERABLE_COINS, apiKeys?: ApiKeys) {
+		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+
+		return await client.transferCoins(to, amount, coin);
+	}
+
+	static async setReferredUser (socksProxy: string, _apiKeys: ApiKeys, referralCode: string, apiKeys?: ApiKeys) {
+		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		return await client.affiliateLinkReferredUser({
+			referralCode
+		})
+	}
+
+	static async getVolume (socksProxy: string, _apiKeys: ApiKeys, apiKeys?: ApiKeys) {
+		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		const ret = await client.getTradeAndEarnRewardsOverview(1)
+		// @ts-ignore
+		return Math.floor(formatUnits(ret.data.totalVolume, 18))
+	}
+	static async deposit (socksProxy: string, _apiKeys: ApiKeys, amount: number, apiKeys?: ApiKeys) {
+		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		const ret = await client.depositToMarginBank(amount)
+		return ret.data
+	}
+
+	static async swapAtCetus (socksProxy: string, _apiKeys: ApiKeys, priKey: string, token0: string, token1: string, amountIn: number, recipient: string) {
+		return await swap(priKey, token0, token1, amountIn, recipient)
+	}
+
+	static async walletBalance (socksProxy: string, _apiKeys: ApiKeys, address: string, coin: string) {
+		return await getWalletBalance(address, coin)
+	}
+
+
+
  /** --- custom api request ---- */
 	static async customRequest(socksProxy: string, apiKeys: ApiKeys | undefined, url: string, method: string, data: any) {
 		if (apiKeys) {
@@ -357,5 +407,13 @@ export default class Bluefin extends BaseExchange {
 			})).data;
 		}
 	}
+	static async customMethodCall(socksProxy: string, apiKeys: ApiKeys, method: string, data: any[]): Promise<any> {
+		if (!Bluefin[method as keyof typeof Bluefin]) {
+			throw new Error('method ' + method + ' Not implemented');
+		}
+		return await (Bluefin[method as keyof typeof Bluefin] as Function)(socksProxy, apiKeys, ...data);
+	}
+	// v2-yfknyu
+
 
 }

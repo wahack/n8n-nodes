@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-turtle",
-  "version": "0.4.26",
+  "version": "0.4.3",
   "description": "no description",
   "keywords": [
     "n8n-community-node-package"
@@ -66,7 +66,9 @@
   },
   "dependencies": {
     "@bluefin-exchange/bluefin-v2-client": "^6.1.11",
+    "@cetusprotocol/cetus-sui-clmm-sdk": "^5.1.8",
     "@mysten/sui": "^1.11.0",
+    "@noble/ciphers": "^1.0.0",
     "@wahack/technicalindicators": "^3.1.1",
     "axios": "^1.7.4",
     "axios-retry": "^4.5.0",
