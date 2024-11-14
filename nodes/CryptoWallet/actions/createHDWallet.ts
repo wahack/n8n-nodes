@@ -8,7 +8,7 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import {  toHex } from '@mysten/sui/utils';
 import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
 import { ethers } from 'ethers';
-
+import {mnemonicToSeedSync} from 'bip39'
 import {
 	updateDisplayOptions,
 } from '../../../utils/utilities';
@@ -86,7 +86,8 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 				publicKey = wallet.publicKey;
 				address = wallet.address;
 			} else if (algorithm === 'ed25519') {
-				const keypair = Ed25519Keypair.deriveKeypair(mnemonic, path);
+				const seed = mnemonicToSeedSync(mnemonic, pwd).toString('hex');
+				const keypair = Ed25519Keypair.deriveKeypairFromSeed(seed, path);
 				secretKey = '0x' + toHex(decodeSuiPrivateKey(keypair.getSecretKey()).secretKey);
 				publicKey = '0x' + toHex(keypair.getPublicKey().toRawBytes());
 				address = keypair.toSuiAddress();
