@@ -38,7 +38,7 @@ requestInstance.interceptors.response.use(response => {
 	// }
 	return response;
 }, error => {
-	throw new NetworkRequestError(error.message);
+	throw new NetworkRequestError(get(error, 'response.data.error.message',  error.message));
 });
 
 axiosRetry(requestInstance, {
@@ -214,8 +214,10 @@ export default class Bluefin extends BaseExchange {
 		}
 	}
 
-	static async fetchOrder(socksProxy: string, apiKeys: ApiKeys, orderId: string, symbol: string, paramsExtra: any): Promise<Order> {
+	static async fetchOrder(socksProxy: string, apiKeys: ApiKeys, orderId: string, symbol: string, paramsExtra?: any): Promise<Order> {
 		const market = this.getMarket(symbol);
+		const keys = apiKeys || paramsExtra?.apiKeys
+
 		// const { url, method, headers, params } =  await this.sign(apiKeys, '/orders', 'GET', {symbol: market.symbol, orderId});
 		// const response = await requestInstance(url, {
 		// 	method,
@@ -224,7 +226,7 @@ export default class Bluefin extends BaseExchange {
 		// 	httpsAgent: getAgent(socksProxy)
 		// });
 		if (!orderId) throw new ExchangeError('params error: orderId is undefined')
-		const client = await this.getClient(socksProxy, apiKeys)
+		const client = await this.getClient(socksProxy, keys)
 		// @ts-ignore
 		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		const res = await client.getUserOrders({
@@ -307,8 +309,10 @@ export default class Bluefin extends BaseExchange {
 
 	static async cancelOrder(socksProxy: string, apiKeys: ApiKeys, orderId: string, symbol: string, paramsExtra?: any) {
 		const market = this.getMarket(symbol);
-		this.checkRequiredCredentials(apiKeys);
-		const client = await this.getClient(socksProxy, apiKeys) as BluefinClient
+		const keys = apiKeys || paramsExtra?.apiKeys
+
+		this.checkRequiredCredentials(keys);
+		const client = await this.getClient(socksProxy, keys) as BluefinClient
 		// @ts-ignore
 		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		// @ts-ignore
@@ -329,8 +333,9 @@ export default class Bluefin extends BaseExchange {
 
 	static async createOrder(socksProxy: string, apiKeys: ApiKeys, symbol: string, type: string, side: string, amount: number, price: number, paramsExtra?: any): Promise<any> {
 		const market = this.getMarket(symbol);
-		this.checkRequiredCredentials(apiKeys);
-		const client = await this.getClient(socksProxy, apiKeys) as BluefinClient
+		const keys = apiKeys || paramsExtra?.apiKeys
+		this.checkRequiredCredentials(keys);
+		const client = await this.getClient(socksProxy, keys) as BluefinClient
 
 		// @ts-ignore
 		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
@@ -356,13 +361,22 @@ export default class Bluefin extends BaseExchange {
 		return await client.transferCoins(to, amount, coin);
 	}
 
-	static async setReferredUser (socksProxy: string, _apiKeys: ApiKeys, referralCode: string, apiKeys?: ApiKeys) {
-		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
-		// @ts-ignore
-		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
-		return await client.affiliateLinkReferredUser({
-			referralCode
-		})
+	static async setReferral (socksProxy: string, _apiKeys: ApiKeys, referralCode: string, apiKeys?: ApiKeys) {
+		// const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+		// // @ts-ignore
+		// client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		// return await client.affiliateLinkReferredUser({
+		// 	referralCode
+		// })
+			// v2-yfknyu
+		const { url, method, headers, data } =  await this.sign(_apiKeys || apiKeys, '/growth/linkRefereeByCode', 'POST',undefined, {referralCode});
+		const response = await requestInstance(url, {
+			method,
+			headers,
+			data,
+			httpsAgent: getAgent(socksProxy)
+		});
+		return response.data
 	}
 
 	static async getVolume (socksProxy: string, _apiKeys: ApiKeys, apiKeys?: ApiKeys) {
@@ -371,7 +385,7 @@ export default class Bluefin extends BaseExchange {
 		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		const ret = await client.getTradeAndEarnRewardsOverview(1)
 		// @ts-ignore
-		return Math.floor(formatUnits(ret.data.totalVolume, 18))
+		return {volume: Math.floor(formatUnits(ret.data.totalVolume, 18))}
 	}
 	static async deposit (socksProxy: string, _apiKeys: ApiKeys, amount: number, apiKeys?: ApiKeys) {
 		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
@@ -380,6 +394,32 @@ export default class Bluefin extends BaseExchange {
 		const ret = await client.depositToMarginBank(amount)
 		return ret.data
 	}
+	static async clearPositions(socksProxy: string, _apiKeys: ApiKeys, symbol: string, apiKeys?: ApiKeys) {
+		const keys = _apiKeys || apiKeys;
+		const market = this.getMarket(symbol);
+		const client = await this.getClient(socksProxy, keys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		await client.cancelAllOpenOrders(market.symbol).catch(() => {})
+    const positon = await client.getUserPosition({
+      symbol: market.symbol
+    })
+    // @ts-ignore
+    if (positon.data.quantity)
+    // @ts-ignore
+    return await this.createOrder(socksProxy, keys, symbol, 'market',  positon.data.side === 'BUY'?'sell':'buy', +formatUnits(+positon.data.quantity, 18), 0);
+	}
+
+	// static async setReferral(socksProxy: string, _apiKeys: ApiKeys, referralCode: string, apiKeys?: ApiKeys) {
+	// 	const keys = _apiKeys || apiKeys;
+	// 	const client = await this.getClient(socksProxy, keys)
+	// 	// @ts-ignore
+	// 	client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+	// 	return await client.affiliateLinkReferredUser({
+	// 		referralCode
+	// 	})
+	// }
+
 
 	static async swapAtCetus (socksProxy: string, _apiKeys: ApiKeys, priKey: string, token0: string, token1: string, amountIn: number, recipient: string) {
 		return await swap(priKey, token0, token1, amountIn, recipient)
@@ -413,7 +453,6 @@ export default class Bluefin extends BaseExchange {
 		}
 		return await (Bluefin[method as keyof typeof Bluefin] as Function)(socksProxy, apiKeys, ...data);
 	}
-	// v2-yfknyu
 
 
 }
