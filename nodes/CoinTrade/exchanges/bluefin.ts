@@ -346,7 +346,7 @@ export default class Bluefin extends BaseExchange {
 			side: side.toUpperCase(),
 			quantity: amount,
 			orderType: type.toUpperCase(),
-			leverage: paramsExtra?.leverage || 5,
+			leverage: paramsExtra?.leverage || 10,
 			...paramsExtra
 		}
 		// @ts-ignore
@@ -385,7 +385,7 @@ export default class Bluefin extends BaseExchange {
 		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		const ret = await client.getTradeAndEarnRewardsOverview(1)
 		// @ts-ignore
-		return {volume: Math.floor(formatUnits(ret.data.totalVolume, 18))}
+		return {volume: Math.floor(formatUnits(ret.data.totalVolume, 18)), info: ret.data}
 	}
 	static async deposit (socksProxy: string, _apiKeys: ApiKeys, amount: number, apiKeys?: ApiKeys) {
 		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
@@ -409,19 +409,23 @@ export default class Bluefin extends BaseExchange {
     // @ts-ignore
     return await this.createOrder(socksProxy, keys, symbol, 'market',  positon.data.side === 'BUY'?'sell':'buy', +formatUnits(+positon.data.quantity, 18), 0);
 	}
-
-	// static async setReferral(socksProxy: string, _apiKeys: ApiKeys, referralCode: string, apiKeys?: ApiKeys) {
-	// 	const keys = _apiKeys || apiKeys;
-	// 	const client = await this.getClient(socksProxy, keys)
-	// 	// @ts-ignore
-	// 	client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
-	// 	return await client.affiliateLinkReferredUser({
-	// 		referralCode
-	// 	})
-	// }
-
+	static async getPosition(socksProxy: string, _apiKeys: ApiKeys, symbol: string, apiKeys?: ApiKeys) {
+		const keys = _apiKeys || apiKeys;
+		const market = this.getMarket(symbol);
+		const client = await this.getClient(socksProxy, keys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+    const positon = await client.getUserPosition({
+      symbol: market.symbol
+    })
+    return positon
+	}
 
 	static async swapAtCetus (socksProxy: string, _apiKeys: ApiKeys, priKey: string, token0: string, token1: string, amountIn: number, recipient: string) {
+		console.log('swapAtcetus------------------');
+		console.log(socksProxy, _apiKeys, priKey, token0);
+
+
 		return await swap(priKey, token0, token1, amountIn, recipient)
 	}
 
@@ -432,10 +436,11 @@ export default class Bluefin extends BaseExchange {
 
 
  /** --- custom api request ---- */
-	static async customRequest(socksProxy: string, apiKeys: ApiKeys | undefined, url: string, method: string, data: any) {
-		if (apiKeys) {
+	static async customRequest(socksProxy: string, apiKeys: ApiKeys | undefined, url: string, method: string, data: any, paramsExtra?: any) {
+		const keys = apiKeys || paramsExtra?.apiKeys
+		if (keys) {
 			return (await requestInstance(url, {
-				...this.sign(apiKeys, url, method.toUpperCase(), method === 'get'? data: undefined, method !== 'get'? data: undefined),
+				...this.sign(keys, url, method.toUpperCase(), method === 'get'? data: undefined, method !== 'get'? data: undefined),
 				httpsAgent: getAgent(socksProxy)
 			})).data;
 		} else {
@@ -451,6 +456,9 @@ export default class Bluefin extends BaseExchange {
 		if (!Bluefin[method as keyof typeof Bluefin]) {
 			throw new Error('method ' + method + ' Not implemented');
 		}
+		console.log('run custom method:---------', method);
+		console.log('params:=======', data);
+
 		return await (Bluefin[method as keyof typeof Bluefin] as Function)(socksProxy, apiKeys, ...data);
 	}
 
