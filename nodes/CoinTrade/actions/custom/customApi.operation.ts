@@ -93,7 +93,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	const returnData: INodeExecutionData[] = [];
 	const length = items.length;
 
-	let credentials = {apiKey: '', secret: '', password: ''}
+	let credentials
 	try {
 		// @ts-ignore
 		credentials = await this.getCredentials('coinTradeApi') || {};
