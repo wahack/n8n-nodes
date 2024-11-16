@@ -57,7 +57,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	let credentials
 	try {
 		// @ts-ignore
-		credentials = await this.getCredentials('coinTradeApi') || {};
+		credentials = await this.getCredentials('coinTradeApi');
 	} catch (e) {
 
 	}

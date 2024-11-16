@@ -11,7 +11,7 @@ import { formatUnits as _formatUnits } from 'viem';
 import { get } from 'radash';
 import { getWalletBalance, swap } from './helpers/cetus';
 
-function formatUnits (a: bigint | number, b: number) {
+function formatUnits (a: bigint | number | string, b: number) {
 	try {
 		return _formatUnits(a ? BigInt(a) : BigInt(0), b)
 	} catch (e) {
@@ -386,6 +386,17 @@ export default class Bluefin extends BaseExchange {
 		const ret = await client.getTradeAndEarnRewardsOverview(1)
 		// @ts-ignore
 		return {volume: Math.floor(formatUnits(ret.data.totalVolume, 18)), info: ret.data}
+	}
+	static async getPnl (socksProxy: string, _apiKeys: ApiKeys, apiKeys?: ApiKeys) {
+		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		const ret = await client.getUserTransferHistory({pageSize: 20})
+		// @ts-ignore
+		const rr = await client.getUserAccountData();
+		return  {
+			pnl: (+formatUnits(ret.data.data.find(i => i.action === 'Deposit')!.amount, 18) - Number(formatUnits(rr.data.accountValue, 18))).toFixed(1)
+		}
 	}
 	static async deposit (socksProxy: string, _apiKeys: ApiKeys, amount: number, apiKeys?: ApiKeys) {
 		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
