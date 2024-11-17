@@ -97,6 +97,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	try {
 		// @ts-ignore
 		credentials = await this.getCredentials('coinTradeApi');
+		if (!credentials.apiKey || !((credentials.apiKey as string).trim())) credentials = undefined;
 	} catch (e) {
 
 	}

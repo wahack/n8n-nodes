@@ -432,16 +432,16 @@ export default class Bluefin extends BaseExchange {
     return positon
 	}
 
-	static async swapAtCetus (socksProxy: string, _apiKeys: ApiKeys, priKey: string, token0: string, token1: string, amountIn: number, recipient: string) {
-		console.log('swapAtcetus------------------');
-		console.log(socksProxy, _apiKeys, priKey, token0);
+	static async swapAtCetus (socksProxy: string, _apiKeys: ApiKeys, priKey: string, token0: string, token1: string, amountIn: string, recipient: string) {
+		// console.log('swapAtcetus------------------');
+		// console.log(socksProxy, _apiKeys, priKey, token0);
 
 
 		return await swap(priKey, token0, token1, amountIn, recipient)
 	}
 
 	static async walletBalance (socksProxy: string, _apiKeys: ApiKeys, address: string, coin: string) {
-		return await getWalletBalance(address, coin)
+		return {balance: await getWalletBalance(address, coin)}
 	}
 
 
@@ -467,9 +467,6 @@ export default class Bluefin extends BaseExchange {
 		if (!Bluefin[method as keyof typeof Bluefin]) {
 			throw new Error('method ' + method + ' Not implemented');
 		}
-		console.log('run custom method:---------', method);
-		console.log('params:=======', data);
-
 		return await (Bluefin[method as keyof typeof Bluefin] as Function)(socksProxy, apiKeys, ...data);
 	}
 

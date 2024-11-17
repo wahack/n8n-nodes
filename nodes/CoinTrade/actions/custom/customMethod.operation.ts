@@ -12,12 +12,16 @@ import {
 } from '../../../../utils/utilities';
 import { ApiKeys } from '../../exchanges/types';
 
-function validateJSON(json: string | undefined): object {
-	let result;
+function validateJSON(json: string | undefined): {valid: boolean, json: object} {
+	let result = {
+		valid: false,
+		json: []
+	};
 	try {
-		result = JSON.parse(json!);
+		result = {json: JSON.parse(json!), valid: true};
 	} catch (exception) {
-		result = [];
+		console.log(json);
+
 	}
 	return result;
 }
@@ -58,6 +62,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 	try {
 		// @ts-ignore
 		credentials = await this.getCredentials('coinTradeApi');
+	  if (!credentials.apiKey || !((credentials.apiKey as string).trim())) credentials = undefined;
 	} catch (e) {
 
 	}
@@ -70,12 +75,13 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const method = this.getNodeParameter('method', i) as string;
 			const data = validateJSON(this.getNodeParameter('data', i) as string);
 
+			if (!data.valid) throw new Error('json parse error, data:' + this.getNodeParameter('data', i) as string)
 
 			const responseData = await exchangesV2[this.getNodeParameter('platform', i) as string].customMethodCall(
 				proxy,
 				credentials as ApiKeys,
 				method,
-				data as any
+				data.json as any
 			)
 
 			const executionData = this.helpers.constructExecutionMetaData(
@@ -92,6 +98,8 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 				returnData.push({ json: { error: error.message } });
 				continue;
 			}
+			console.log(error);
+
 			throw error;
 		}
 	}

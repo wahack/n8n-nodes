@@ -1,4 +1,6 @@
-import {  TransactionUtil } from "@cetusprotocol/cetus-sui-clmm-sdk";
+import {  PreSwapWithMultiPoolParams, TransactionUtil } from "@cetusprotocol/cetus-sui-clmm-sdk";
+import BN from 'bn.js'
+
 import {
   AggregatorResult,
   PathProvider,
@@ -107,7 +109,7 @@ export async function swap(
   priKey: string,
   token0: string,
   token1: string,
-  amountIn: number,
+  amountIn: string,
   recipient: string
 ) {
   await initPool();
@@ -119,16 +121,27 @@ export async function swap(
 
   // return;
   // The first two addresses requiring coin types.
+
+	const poolByCoins = await cetusClmmSDK.Pool.getPoolByCoins([token0, token1])
+	const swapWithMultiPoolParams: PreSwapWithMultiPoolParams = {
+		poolAddresses: poolByCoins.map(i => i.poolAddress),
+		a2b: true,
+		byAmountIn: true,
+		amount: amountIn,
+		coinTypeA: poolByCoins[0].coinTypeA,
+		coinTypeB: poolByCoins[0].coinTypeB
+	}
   const res = (
     await cetusClmmSDK.RouterV2.getBestRouter(
       token0,
       token1,
-      Number(amountIn),
+			// @ts-ignore
+      new BN(amountIn),
       true,
       0.5,
       "",
       userAddress,
-      undefined,
+      swapWithMultiPoolParams,
       false
     )
   ).result as AggregatorResult;

@@ -4,7 +4,7 @@ export const mainnet = {
   fullRpcUrl: 'https://fullnode.mainnet.sui.io:443',
   swapCountUrl: 'https://api-sui.cetus.zone/v2/sui/pools_info',
   simulationAccount: {
-    address: ''
+    address: '0xa4a12616f64c747db4a1b59e6dc4b98dc60c285e64f87bcc94df534a8593ff2f'
   },
   cetus_config: {
     package_id: '0x95b8d278b876cae22206131fb9724f701c9444515813042f54f0a426c9a3bc2f',
