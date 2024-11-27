@@ -140,7 +140,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			let side = this.getNodeParameter('side', i) as string;
 			const type = this.getNodeParameter('type', i) as string;
 			const amount = this.getNodeParameter('quantity', i) as number;
-			const quantityUnit = this.getNodeParameter('quantityUnit', i) as string;
+			// const quantityUnit = this.getNodeParameter('quantityUnit', i) as string;
 			let price = type === 'limit' ? this.getNodeParameter('price', i) as number : undefined;
 
 			// let amount: number = 0;
@@ -186,7 +186,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			// if (!amount) amount = Number(exchange.amountToPrecision(symbol, quantityUnit === 'count' ? quantity : new BigNumber(quantity).dividedBy((await exchange.fetchTicker(symbol)).last || 0).toNumber()));
 
 
-			const responseData = await exchanges[platform].createOrder(proxy, credentials as any, symbol, type, side, amount, price as number, {quantityUnit, ...params})
+			const responseData = await exchanges[platform].createOrder(proxy, credentials as any, symbol, type, side, amount, price as number, { ...params})
 
 			const executionData = this.helpers.constructExecutionMetaData(
 				// wrapData(responseData as IDataObject[]),

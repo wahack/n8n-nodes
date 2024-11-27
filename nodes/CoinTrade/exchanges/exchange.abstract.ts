@@ -54,6 +54,10 @@ export default class BaseExchange {
 				marketType: MarketType.option
 			}
 		}
+		return {
+			symbol: symbolInput.split(':')[0],
+			marketType: MarketType.futures
+		}
 		throw new Error('Invalid symbol input');
 	}
 

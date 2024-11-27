@@ -437,7 +437,7 @@ export default class Bluefin extends BaseExchange {
 		// console.log(socksProxy, _apiKeys, priKey, token0);
 
 
-		return await swap(priKey, token0, token1, amountIn, recipient)
+		return {tx: await swap(priKey, token0, token1, amountIn, recipient)}
 	}
 
 	static async walletBalance (socksProxy: string, _apiKeys: ApiKeys, address: string, coin: string) {

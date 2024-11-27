@@ -6,6 +6,7 @@ import Kucoin from './kucoin';
 import Bitget from './bitget';
 import Gate from './gate';
 import Polymarket from './polymarket';
+import Okx from './okx';
 const exchanges: Record<string, typeof BaseExchange> =  {
 	binance: Binance,
 	bybit: Bybit,
@@ -13,7 +14,8 @@ const exchanges: Record<string, typeof BaseExchange> =  {
 	kucoin: Kucoin,
 	bitget: Bitget,
 	gate: Gate,
-	polymarket: Polymarket
+	polymarket: Polymarket,
+	okx: Okx
 }
 
 export default exchanges;

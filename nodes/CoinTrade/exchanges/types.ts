@@ -39,6 +39,7 @@ export enum MarketType {
   spot = 'spot',  // 现货
   linear = 'linear',  // 正向永续/期货
   inverse = 'inverse',  // 反向永续/期货
+	futures = 'futures',
   option = 'option',  // 期权
 }
 
