@@ -27,28 +27,28 @@ export default class BaseExchange {
 	static getMarket (symbolInput: string): Market {
 		symbolInput = symbolInput.toUpperCase().trim();
 		// if symbolInput is match pattern like BTC/USDT
-		if (symbolInput.match(new RegExp('^[A-Z]+/[A-Z]+$'))) {
+		if (symbolInput.match(new RegExp('^[A-Z0-9]+/[A-Z]+$'))) {
 			return {
 				symbol: symbolInput,
 				marketType: MarketType.spot
 			}
 		}
 		// if symbolInput is match pattern like BTC/USDT:USDT
-		if (symbolInput.match(new RegExp('^[A-Z]+/USDT:USDT$'))) {
+		if (symbolInput.match(new RegExp('^[A-Z0-9]+/USDT:USDT$'))) {
 			return {
 				symbol: symbolInput.split(':')[0],
 				marketType: MarketType.linear
 			}
 		}
 		// if symbolInput is match pattern like BTC/USD:BTC, ETH/USD:ETH, SUI/USD:SUI
-		if (symbolInput.match(new RegExp('^[A-Z]+/USD:[A-Z]+$'))) {
+		if (symbolInput.match(new RegExp('^[A-Z0-9]+/USD:[A-Z0-9]+$'))) {
 			return {
 				symbol: symbolInput.split(':')[0],
 				marketType: MarketType.inverse
 			}
 		}
 		// if symbolInput is match pattern like BTC/USDT:BTC-211225-60000-P, ETH/USDT:ETH-210625-40000-C
-		if (symbolInput.match(new RegExp('^[A-Z]+/[A-Z]+:[A-Z]+-[0-9]+-[0-9]+-[CP]$'))) {
+		if (symbolInput.match(new RegExp('^[A-Z0-9]+/[A-Z]+:[A-Z0-9]+-[0-9]+-[0-9]+-[CP]$'))) {
 			return {
 				symbol: symbolInput.split(':')[0],
 				marketType: MarketType.option
