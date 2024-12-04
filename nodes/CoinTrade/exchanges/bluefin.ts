@@ -10,6 +10,7 @@ import { Networks, BluefinClient, ORDER_STATUS, TRANSFERABLE_COINS } from "@blue
 import { formatUnits as _formatUnits } from 'viem';
 import { get } from 'radash';
 import { getWalletBalance, swap } from './helpers/cetus';
+import { closePosition, getPoolByName, getUserPositions, openPositionWithFixedAmount, swapAssets } from './helpers/bluefin.spot';
 
 function formatUnits (a: bigint | number | string, b: number) {
 	try {
@@ -403,7 +404,14 @@ export default class Bluefin extends BaseExchange {
 		// @ts-ignore
 		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
 		const ret = await client.depositToMarginBank(amount)
-		return ret.data
+		return {result: ret.data}
+	}
+	static async withdrawUsdc (socksProxy: string, _apiKeys: ApiKeys, apiKeys?: ApiKeys) {
+		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+		// @ts-ignore
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		const ret = await client.withdrawFromMarginBank();
+		return {result: ret.data}
 	}
 	static async clearPositions(socksProxy: string, _apiKeys: ApiKeys, symbol: string, apiKeys?: ApiKeys) {
 		const keys = _apiKeys || apiKeys;
@@ -432,14 +440,30 @@ export default class Bluefin extends BaseExchange {
     return positon
 	}
 
+	static async fetchSpotPositions (socksProxy: string, _apiKeys: ApiKeys, address: string) {
+		return {result: await getUserPositions(address) }
+	}
+
+
+	static async closeSpotPosition (socksProxy: string, _apiKeys: ApiKeys, prikey: string, posId: string) {
+		return {result: await closePosition(prikey, posId) }
+	}
+
 	static async swapAtCetus (socksProxy: string, _apiKeys: ApiKeys, priKey: string, token0: string, token1: string, amountIn: string, recipient: string) {
-		// console.log('swapAtcetus------------------');
-		// console.log(socksProxy, _apiKeys, priKey, token0);
-
-
 		return {tx: await swap(priKey, token0, token1, amountIn, recipient)}
 	}
 
+	static async getPoolData (socksProxy: string, _apiKeys: ApiKeys,token0: string, token1: string) {
+		return {result: await getPoolByName(token0, token1)}
+	}
+
+	static async openPosition (socksProxy: string, _apiKeys: ApiKeys, privateKey: string, poolID: string, coinAmount: number, slippage: number, lowerPrice: number, upperPrice: number) {
+		return {result: await openPositionWithFixedAmount(privateKey, poolID, coinAmount, slippage, lowerPrice, upperPrice)}
+	}
+
+	static async swap (socksProxy: string, _apiKeys: ApiKeys, priKey: string, poolId: string, amountIn: string,   aToB : boolean, slippage?: number) {
+		return {result: await swapAssets(priKey, poolId, +amountIn, aToB, true, slippage || 0.05)}
+	}
 	static async walletBalance (socksProxy: string, _apiKeys: ApiKeys, address: string, coin: string) {
 		return {balance: await getWalletBalance(address, coin)}
 	}

@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-turtle",
-  "version": "0.4.46",
+  "version": "0.4.48",
   "description": "no description",
   "keywords": [
     "n8n-community-node-package"
@@ -65,8 +65,9 @@
     "n8n-workflow": "*"
   },
   "dependencies": {
-    "@bluefin-exchange/bluefin-v2-client": "^6.1.11",
+    "@bluefin-exchange/bluefin-v2-client": "^6.1.14",
     "@cetusprotocol/cetus-sui-clmm-sdk": "^5.1.8",
+    "@firefly-exchange/library-sui": "^2.4.0",
     "@mysten/sui": "^1.11.0",
     "@noble/ciphers": "^1.0.0",
     "@wahack/technicalindicators": "^3.1.1",
@@ -75,6 +76,7 @@
     "bignumber.js": "^9.1.2",
     "bip39": "^3.1.0",
     "bn.js": "^4.12.1",
+    "decimal.js": "^10.4.3",
     "ethers": "^6.13.3",
     "moment-timezone": "^0.5.45",
     "muder": "^0.2.0",
