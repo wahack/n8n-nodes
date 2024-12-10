@@ -14,6 +14,7 @@ import {
 } from "@mysten/sui/cryptography";
 import { cetusClmmSDK } from "./cetus.config";
 import { hexToBytes } from "@noble/ciphers/utils";
+import BigNumber from "bignumber.js";
 
 // const SUI = "0x2::sui::SUI";
 // const USDC =
@@ -96,13 +97,13 @@ export async function getWalletBalance (userAddress: string, coinAddress: string
 
   const allCoinAsset = await cetusClmmSDK.getOwnerCoinAssets(userAddress);
   const amount = allCoinAsset.reduce((acc, coin) => {
-    if (coin.coinAddress === coinAddress) {
-      acc += coin.balance
+    if (coin.coinAddress.toLowerCase() === coinAddress.toLowerCase()) {
+      acc = acc.plus(coin.balance.toString())
     }
     return acc
 		//@ts-ignore
-  }, 0n);
-  return amount;
+  }, new BigNumber(0));
+  return amount.toString();
 }
 
 export async function swap(

@@ -12,6 +12,7 @@ import { get } from 'radash';
 import { getWalletBalance, swap } from './helpers/cetus';
 import { closePosition, getPoolByName, getUserPositions, openPositionWithFixedAmount, swapAssets } from './helpers/bluefin.spot';
 
+
 function formatUnits (a: bigint | number | string, b: number) {
 	try {
 		return _formatUnits(a ? BigInt(a) : BigInt(0), b)
@@ -98,9 +99,11 @@ export default class Bluefin extends BaseExchange {
 	static async sign(apiKeys: ApiKeys, url: string, method: string, params?: any, data?: any, headers?: any) {
 		this.checkRequiredCredentials(apiKeys);
 		const client = await this.getClient('', apiKeys) as BluefinClient
-
 		// Uses key provided while initializing the client to generate the signature
-		const token  =  await client.userOnBoarding();
+		//const token  =  await client.userOnBoarding();
+		// @ts-ignore
+		const token = client.apiService.token
+
 		headers = headers || {};
 		headers['Authorization'] = `Bearer ${token}`;
 		return  { url, method, data, headers, params };
@@ -286,7 +289,9 @@ export default class Bluefin extends BaseExchange {
 
 	static async fetchOpenOrders(socksProxy: string, apiKeys: ApiKeys, symbol: string, since: number | undefined, limit: number, paramsExtra?: any): Promise<Order[]> {
 		const market = this.getMarket(symbol);
-		const { url, method, headers, params } =  await this.sign(apiKeys, '/orders', 'GET', {symbol: market.symbol, statuses: [ORDER_STATUS.OPEN, ORDER_STATUS.PARTIAL_FILLED, ORDER_STATUS.STAND_BY, ORDER_STATUS.STAND_BY_PENDING, ORDER_STATUS.PENDING]});
+		const keys = apiKeys || paramsExtra?.apiKeys
+
+		const { url, method, headers, params } =  await this.sign(keys, '/orders', 'GET', {symbol: market.symbol, statuses: [ORDER_STATUS.OPEN, ORDER_STATUS.PARTIAL_FILLED, ORDER_STATUS.STAND_BY, ORDER_STATUS.STAND_BY_PENDING, ORDER_STATUS.PENDING]});
 		const response = await requestInstance(url, {
 			method,
 			headers,
@@ -379,7 +384,23 @@ export default class Bluefin extends BaseExchange {
 		});
 		return response.data
 	}
-
+	// static async rewardsss (socksProxy: string, _apiKeys: ApiKeys) {
+	// 	// const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
+	// 	// // @ts-ignore
+	// 	// client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+	// 	// return await client.affiliateLinkReferredUser({
+	// 	// 	referralCode
+	// 	// })
+	// 		// v2-yfknyu
+	// 	const { url, method, headers, data } =  await this.sign(_apiKeys, '/growth/claims/breakdown/campaign', 'GET',{intervalNumber: 0 ,intervalType: ''});
+	// 	const response = await requestInstance(url, {
+	// 		method,
+	// 		headers,
+	// 		data,
+	// 		httpsAgent: getAgent(socksProxy)
+	// 	});
+	// 	return response.data
+	// }
 	static async getVolume (socksProxy: string, _apiKeys: ApiKeys, apiKeys?: ApiKeys) {
 		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
 		// @ts-ignore
