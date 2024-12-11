@@ -11,7 +11,7 @@ import { formatUnits as _formatUnits } from 'viem';
 import { get } from 'radash';
 import { getWalletBalance, swap } from './helpers/cetus';
 import { closePosition, getPoolByName, getUserPositions, openPositionWithFixedAmount, swapAssets } from './helpers/bluefin.spot';
-
+import {toBigNumberStr, bnToBaseStr} from '@firefly-exchange/library-sui'
 
 function formatUnits (a: bigint | number | string, b: number) {
 	try {
@@ -384,23 +384,37 @@ export default class Bluefin extends BaseExchange {
 		});
 		return response.data
 	}
-	// static async rewardsss (socksProxy: string, _apiKeys: ApiKeys) {
-	// 	// const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
-	// 	// // @ts-ignore
-	// 	// client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
-	// 	// return await client.affiliateLinkReferredUser({
-	// 	// 	referralCode
-	// 	// })
-	// 		// v2-yfknyu
-	// 	const { url, method, headers, data } =  await this.sign(_apiKeys, '/growth/claims/breakdown/campaign', 'GET',{intervalNumber: 0 ,intervalType: ''});
-	// 	const response = await requestInstance(url, {
-	// 		method,
-	// 		headers,
-	// 		data,
-	// 		httpsAgent: getAgent(socksProxy)
-	// 	});
-	// 	return response.data
-	// }
+	static async claimRewards (socksProxy: string, _apiKeys: ApiKeys, apiKeys: ApiKeys) {
+		const keys = _apiKeys || apiKeys
+		const client = await this.getClient(socksProxy, keys)
+		const { url, method, headers, data } =  await this.sign(keys, '/growth/claims/breakdown/historical-and-airdrop', 'GET');
+		const response = await requestInstance(url, {
+			method,
+			headers,
+			data,
+			httpsAgent: getAgent(socksProxy)
+		});
+		const claimable: any = [];
+		response.data.data.historicalRewardsBreakdown.forEach((item: any) => {
+			item.claimDetails.forEach((subItem: any) => {
+				if (subItem.claimStatus === 'CLAIMABLE') claimable.push(subItem)
+			})
+		})
+		const ret = await client.claimRewards(claimable.map((item:any) => {
+				return {
+					payload: {
+						target: '0x04d3f40f9fde19fbae88b8c5e9f47f138449965a90ac9ab3d14b0eb5bc286fb6',
+						receiver: keys.apiKey,
+						amount: +toBigNumberStr(bnToBaseStr(item.rewardedPoints), 9),
+						expiry: new Date(item.expiry).getTime(),
+						nonce: item.nonce,
+						type: 1
+					},
+					signature: item.claimSignature
+				}
+			}))
+		return {result: ret.data}
+	}
 	static async getVolume (socksProxy: string, _apiKeys: ApiKeys, apiKeys?: ApiKeys) {
 		const client = await this.getClient(socksProxy, _apiKeys || apiKeys)
 		// @ts-ignore
