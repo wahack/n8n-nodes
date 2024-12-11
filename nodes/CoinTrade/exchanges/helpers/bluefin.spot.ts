@@ -58,18 +58,23 @@ export async function getPoolByName(tokenAName: string, tokenBName: string) {
 	const aToBSymbol = `${tokenAName}/${tokenBName}`
 	const bToASymbol = `${tokenBName}/${tokenAName}`
 
-	const pool = poolList.find((item: any) => {
+	const pools = poolList.filter((item: any) => {
 		return (item.symbol.toUpperCase() === aToBSymbol || item.symbol.toUpperCase() === bToASymbol) && item.verified
 	})
-	if (!pool) return undefined;
+	// if (!pools) return {pools};
 
-	return {
-		id: pool.address,
-		aToB: pool.symbol.toUpperCase() === aToBSymbol,
-		price: pool.price,
-		config: pool.config,
-		symbol: pool.symbol
-	}
+	return pools.map((pool: any) => {
+			return {
+				id: pool.address,
+				aToB: pool.symbol.toUpperCase() === aToBSymbol,
+				price: pool.price,
+				config: pool.config,
+				symbol: pool.symbol,
+				tokenA: pool.tokenA,
+				tokenB: pool.tokenB,
+				feeRate: pool.feeRate
+			}
+		})
 }
 /// Parameters:
 /// - privateKey        : The private key of the user making the blockchain call
