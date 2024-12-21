@@ -70,6 +70,9 @@ export const description: INodeTypeDescription = {
 				{
 					name: 'Polymarket',
 					value: 'polymarket'
+				},{
+					name: 'Grvt',
+					value: 'grvt'
 				}
 			],
 			default: 'binance',

@@ -7,6 +7,7 @@ import Bitget from './bitget';
 import Gate from './gate';
 import Polymarket from './polymarket';
 import Okx from './okx';
+import Grvt from './grvt';
 const exchanges: Record<string, typeof BaseExchange> =  {
 	binance: Binance,
 	bybit: Bybit,
@@ -15,7 +16,8 @@ const exchanges: Record<string, typeof BaseExchange> =  {
 	bitget: Bitget,
 	gate: Gate,
 	polymarket: Polymarket,
-	okx: Okx
+	okx: Okx,
+	grvt: Grvt
 }
 
 export default exchanges;
