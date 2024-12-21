@@ -106,8 +106,8 @@ export default class Grvt extends BaseExchange {
 	}
 	static async  buildOrderSignature(priKey: string, order: any) {
 		const timeNowNs = BigInt(Date.now()) * BigInt(1_000_000); // 当前时间的纳秒
-		const oneHoursNs = BigInt(1 * 60 * 60) * BigInt(1_000_000_000); // 1h的纳秒
-		const futureTimeNs = timeNowNs + oneHoursNs; // 1小时后的时间
+		const oneHoursNs = BigInt(29 * 24 * 60 * 60) * BigInt(1_000_000_000); // 29天的纳秒
+		const futureTimeNs = timeNowNs + oneHoursNs; // 29天后的时间
 		const expiration = BigInt(futureTimeNs.toString()); // 转为字符串
 		const nonce = Math.floor(Math.random() * 1000000000); // 随机数
 		const legs = order.legs.map((leg: any) => {
@@ -285,6 +285,7 @@ export default class Grvt extends BaseExchange {
 			amount: +order.legs[0].size,
 			filled: 0,
 			remaining: +order.legs[0].size,
+			info: order,
 		};
 	}
 
@@ -332,6 +333,7 @@ export default class Grvt extends BaseExchange {
 			},
 			httpsAgent: getAgent(socksProxy),
 		});
+
 		return response.data.result.map((order: any) => this.parseOrder(order, symbol));
 	}
 
@@ -418,7 +420,7 @@ export default class Grvt extends BaseExchange {
 
 // async function test() {
 // 	const apiKeys = {
-
+// 		secret: ""
 // 	};
 // 	// console.log(await Grvt.fetchTicker('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
 // 	// console.log(await Grvt.getAuthHeaders('socks://127.0.0.1:7890', apiKeys));
@@ -430,7 +432,7 @@ export default class Grvt extends BaseExchange {
 // 			'BTC/USDT:USDT',
 // 			undefined,
 // 			20,
-// 			{},
+// 			{sub_account_id: ""},
 // 		),
 // 	);
 // 	// console.log(await Grvt.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'market', 'sell', 0.001,0, {}));
