@@ -270,8 +270,10 @@ export default class Okx extends BaseExchange {
 			side,
 			ordType: type,
 			sz: amount,
-			tgtCcy: 'base_ccy',
 			...paramsExtra
+		}
+		if (type === 'market' && market.marketType === MarketType.spot) {
+			body.tgtCcy = 'base_ccy'
 		}
 		if (price) body.px = price
 		const { url, method, data, headers, params } = this.sign(apiKeys, '/api/v5/trade/order', 'POST', undefined, body);
