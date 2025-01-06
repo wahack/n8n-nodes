@@ -12,11 +12,6 @@ import { get } from 'radash';
 import { getWalletBalance, swap } from './helpers/cetus';
 import { closePosition, getPoolByName, getUserPositions, openPositionWithFixedAmount, swapAssets } from './helpers/bluefin.spot';
 import {toBigNumberStr, bnToBaseStr} from '@firefly-exchange/library-sui'
-import { createCache } from 'cache-manager';
-
-const clientCache = createCache({
-  ttl: 12 * 60 * 60 * 1000, // 4 hours
-})
 
 function formatUnits (a: bigint | number | string, b: number) {
 	try {
@@ -64,6 +59,8 @@ axiosRetry(requestInstance, {
 
 export default class Bluefin extends BaseExchange {
 	name = 'Bluefin';
+	static clients = new Map<string, BluefinClient>();
+
 	/** ---- Helper functions ---- */
 	static checkRequiredCredentials(apiKeys: ApiKeys): boolean {
 		if(!apiKeys || !apiKeys.apiKey || !apiKeys.secret) {
@@ -114,9 +111,8 @@ export default class Bluefin extends BaseExchange {
 
 	static async getClient (socksProxy: string, apiKeys: ApiKeys): Promise<BluefinClient> {
 		const key = `${apiKeys.apiKey}-${apiKeys.secret}`;
-		let client = await clientCache.get(key)
-		if (client) return client as BluefinClient;
-		const _client = new BluefinClient(
+		if (this.clients.get(key)) return this.clients.get(key) as BluefinClient;
+		const client = new BluefinClient(
 			true,
 			Networks.PRODUCTION_SUI,
 			'0x' + apiKeys.secret,
@@ -124,10 +120,11 @@ export default class Bluefin extends BaseExchange {
 		); //passing isTermAccepted = true for compliance and authorizarion
 
 		// @ts-ignore
-		_client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
-		await _client.init();
-		await clientCache.set(key, _client)
-		return _client;
+		client.apiService.apiService.defaults.httpsAgent = getAgent(socksProxy)
+		await client.init();
+
+		this.clients.set(key, client);
+		return client;
 	}
 
 	// BTC/USDT => BTC-PERP
