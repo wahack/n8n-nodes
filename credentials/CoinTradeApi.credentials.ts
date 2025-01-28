@@ -50,7 +50,13 @@ export class CoinTradeApi implements ICredentialType {
 				},{
 					name: 'polymarket',
 					value: 'polymarket'
+				},
+				{
+					name: 'backpack',
+					value: 'backpack'
 				}
+
+
 			]
 		},
 		{
