@@ -194,7 +194,7 @@ export default class Backpack extends BaseExchange {
 			params,
 			httpsAgent: getAgent(socksProxy)
 		});
-		console.log(response.data);
+		// console.log(response.data);
 
 		return response.data.map((order: any) => this.parseOrder(order, symbol));
 	}
@@ -268,25 +268,25 @@ export default class Backpack extends BaseExchange {
 	}
 }
 
-async function test() {
-	const apiKeys = {
-		secret: "",
-		apiKey: ''
-	};
-	// console.log(await Backpack.fetchTicker('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
-	// console.log(await Backpack.fetchBalance('socks://127.0.0.1:7890', apiKeys));
-	console.log(
-		await Backpack.fetchOpenOrders(
-			'socks://127.0.0.1:7890',
-			apiKeys,
-			'BTC/USDT:USDT',
-			undefined,
-			100
-				),
-	);
-	// console.log(await Backpack.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.00001,100000, {}));
-	// console.log(await Bitget.cancelOrder('socks://127.0.0.1:7890', apiKeys, 'c775afc3-6c6a-4cb9-944e-c13a1faac92b', 'BTC/USDT:USDT'));
-	// console.log(await Backpack.fetchOrderBook('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
-}
+// async function test() {
+// 	const apiKeys = {
+// 		secret: "",
+// 		apiKey: ''
+// 	};
+// 	// console.log(await Backpack.fetchTicker('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
+// 	// console.log(await Backpack.fetchBalance('socks://127.0.0.1:7890', apiKeys));
+// 	console.log(
+// 		await Backpack.fetchOpenOrders(
+// 			'socks://127.0.0.1:7890',
+// 			apiKeys,
+// 			'BTC/USDT:USDT',
+// 			undefined,
+// 			100
+// 				),
+// 	);
+// 	// console.log(await Backpack.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'limit', 'buy', 0.00001,100000, {}));
+// 	// console.log(await Bitget.cancelOrder('socks://127.0.0.1:7890', apiKeys, 'c775afc3-6c6a-4cb9-944e-c13a1faac92b', 'BTC/USDT:USDT'));
+// 	// console.log(await Backpack.fetchOrderBook('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
+// }
 
-test();
+// test();
