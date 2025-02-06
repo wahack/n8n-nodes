@@ -73,6 +73,10 @@ export const description: INodeTypeDescription = {
 				},{
 					name: 'Grvt',
 					value: 'grvt'
+				},
+				{
+					name: 'Backpack',
+					value: 'backpack'
 				}
 			],
 			default: 'binance',

@@ -8,6 +8,8 @@ import Gate from './gate';
 import Polymarket from './polymarket';
 import Okx from './okx';
 import Grvt from './grvt';
+import Backpack from './backpack'
+
 const exchanges: Record<string, typeof BaseExchange> =  {
 	binance: Binance,
 	bybit: Bybit,
@@ -17,7 +19,8 @@ const exchanges: Record<string, typeof BaseExchange> =  {
 	gate: Gate,
 	polymarket: Polymarket,
 	okx: Okx,
-	grvt: Grvt
+	grvt: Grvt,
+	backpack: Backpack
 }
 
 export default exchanges;

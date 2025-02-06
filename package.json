@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-turtle",
-  "version": "0.4.55",
+  "version": "0.4.57",
   "description": "no description",
   "keywords": [
     "n8n-community-node-package"
@@ -84,6 +84,8 @@
     "qs": "^6.13.0",
     "radash": "^12.1.0",
     "socks-proxy-agent": "^8.0.4",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
     "uuid": "^10.0.0",
     "viem": "^2.21.8"
   }
