@@ -17,6 +17,7 @@ const properties: INodeProperties[] = [
 		name: 'symbol',
 		type: 'string',
 		default: 'BTC/USDT',
+		description: 'Symbol Format: Spot BTC/USDT, USDT Perpetual BTC/USDT:USDT, Coin-Margined Perpetual ETH/USD:ETH',
 		required: true,
 	}
 ];

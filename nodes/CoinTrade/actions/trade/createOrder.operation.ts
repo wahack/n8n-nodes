@@ -26,8 +26,8 @@ const properties: INodeProperties[] = [
 		name: 'symbol',
 		type: 'string',
 		default: '',
-		placeholder: '格式: 现货BTC/USDT, usdt永续BTC/USDT:USDT,币本位永续ETH/USD:ETH',
-		description: "格式,现货: BTC/USDT,usdt永续: BTC/USDT:USDT, 币本位永续: ETH/USD:ETH, 掉期合约: BTC/USDT:BTC-211225, 期权: BTC/USD:BTC-240927-40000-C",
+		placeholder: 'Format: Spot BTC/USDT, USDT Perpetual BTC/USDT:USDT, Coin-Margined Perpetual ETH/USD:ETH',
+		description: "Format: Spot BTC/USDT, USDT Perpetual BTC/USDT:USDT, Coin-Margined Perpetual ETH/USD:ETH",
 		required: true,
 	},{
 		displayName: 'Side',
@@ -37,10 +37,10 @@ const properties: INodeProperties[] = [
 		required: true,
 		options: [
 			{
-				name: '买入',
+				name: 'Buy',
 				value: 'buy'
 			}, {
-				name: '卖出',
+				name: 'Sell',
 				value: 'sell'
 			}
 		]
@@ -51,39 +51,43 @@ const properties: INodeProperties[] = [
 		type: 'options',
 		default: 'market',
 		required: true,
+		description: 'Order type',
 		options: [
 			{
-				name: '市场价',
+				name: 'Market',
 				value: "market"
 			}, {
-				name: '限价',
+				name: 'Limit',
 				value: 'limit'
 			}
 		]
 	},
 	{
-		displayName: '数量',
+		displayName: 'Quantity',
 		name: 'quantity',
 		type: 'number',
+		description: 'Generally represents the coin quantity. Special cases: for Bitget/Gate spot market buy orders, the quantity is measured in USDT; for Gate futures trading, the quantity is measured in contracts.',
 		default: undefined,
 		required: true,
-	},{
-		displayName: '数量单位',
-		name: 'quantityUnit',
-		type: 'options',
-		default: 'count',
-		description: '一般为币的数量,特殊情况: bitget/gate现货市场价买入时, 数量单位为金额(Usdt); gate合约数量单位为张',
-		options: [
-			{
-				name: "数量",
-				value: "count"
-			}
-			// , {
-			// 	name: '金额(Usdt)',
-			// 	value: 'usdt'
-			// }
-		]
-	},{
+	},
+	// {
+	// 	displayName: 'QuantityUnit',
+	// 	name: 'quantityUnit',
+	// 	type: 'options',
+	// 	default: 'count',
+	// 	description: 'Generally represents the coin quantity. Special cases: for Bitget/Gate spot market buy orders, the quantity is measured in USDT; for Gate futures trading, the quantity is measured in contracts.',
+	// 	options: [
+	// 		{
+	// 			name: "Count",
+	// 			value: "count"
+	// 		}
+	// 		// , {
+	// 		// 	name: '金额(Usdt)',
+	// 		// 	value: 'usdt'
+	// 		// }
+	// 	]
+	// },
+	{
 		displayName: 'Price',
 		name: 'price',
 		type: "number",
@@ -98,6 +102,7 @@ const properties: INodeProperties[] = [
 		displayName: 'Params',
 		name: 'params',
 		type: 'json',
+		description: 'Additional parameters passed to request body, if needed',
 		typeOptions: {
 			alwaysOpenEditWindow: true,
 		},

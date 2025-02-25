@@ -8,43 +8,44 @@ import { get } from 'radash';
 import BigNumber from 'bignumber.js';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createCache } from 'cache-manager';
+import Instruments from './helpers/grvt-instrucments'
 const authHeadersCache = createCache({
   ttl: 23 * 60 * 60 * 1000, // 23 hours
 })
 // import BigNumber from 'bignumber.js';
 
-const Instruments = [
-	{
-		instrument: 'BTC_USDT_Perp',
-		instrument_hash: '0x030501',
-		base: 'BTC',
-		quote: 'USDT',
-		kind: 'PERPETUAL',
-		venues: ['ORDERBOOK', 'RFQ'],
-		settlement_period: 'PERPETUAL',
-		base_decimals: 9,
-		quote_decimals: 6,
-		tick_size: '0.1',
-		min_size: '0.001',
-		create_time: '1733309124234866496',
-		max_position_size: '100.0',
-	},
-	{
-		instrument: 'ETH_USDT_Perp',
-		instrument_hash: '0x030401',
-		base: 'ETH',
-		quote: 'USDT',
-		kind: 'PERPETUAL',
-		venues: ['ORDERBOOK', 'RFQ'],
-		settlement_period: 'PERPETUAL',
-		base_decimals: 9,
-		quote_decimals: 6,
-		tick_size: '0.01',
-		min_size: '0.01',
-		create_time: '1733309124234868556',
-		max_position_size: '1000.0',
-	},
-];
+// const Instruments = [
+// 	{
+// 		instrument: 'BTC_USDT_Perp',
+// 		instrument_hash: '0x030501',
+// 		base: 'BTC',
+// 		quote: 'USDT',
+// 		kind: 'PERPETUAL',
+// 		venues: ['ORDERBOOK', 'RFQ'],
+// 		settlement_period: 'PERPETUAL',
+// 		base_decimals: 9,
+// 		quote_decimals: 6,
+// 		tick_size: '0.1',
+// 		min_size: '0.001',
+// 		create_time: '1733309124234866496',
+// 		max_position_size: '100.0',
+// 	},
+// 	{
+// 		instrument: 'ETH_USDT_Perp',
+// 		instrument_hash: '0x030401',
+// 		base: 'ETH',
+// 		quote: 'USDT',
+// 		kind: 'PERPETUAL',
+// 		venues: ['ORDERBOOK', 'RFQ'],
+// 		settlement_period: 'PERPETUAL',
+// 		base_decimals: 9,
+// 		quote_decimals: 6,
+// 		tick_size: '0.01',
+// 		min_size: '0.01',
+// 		create_time: '1733309124234868556',
+// 		max_position_size: '1000.0',
+// 	},
+// ];
 
 const TIMEOUT = 5000;
 // 创建全局可用的axios实例
@@ -110,20 +111,20 @@ export default class Grvt extends BaseExchange {
 		const futureTimeNs = timeNowNs + oneHoursNs; // 29天后的时间
 		const expiration = BigInt(futureTimeNs.toString()); // 转为字符串
 		const nonce = Math.floor(Math.random() * 1000000000); // 随机数
-		const legs = order.legs.map((leg: any) => {
-			const instrument = Instruments.find((item) => item.instrument === leg.instrument);
+		const legs = order.l.map((leg: any) => {
+			const instrument = Instruments.find((item) => item.instrument === leg.i);
 			if (!instrument) {
 				throw new Error('Instrument not found');
 			}
 			const PRICE_MULTIPLIER = new BigNumber(1_000_000_000);
 			const sizeMultiplier = new BigNumber(10).pow(instrument.base_decimals);
 
-			const sizeInt = new BigNumber(leg.size)
+			const sizeInt = new BigNumber(leg.s)
 			.multipliedBy(sizeMultiplier)
 			.integerValue(BigNumber.ROUND_FLOOR)
 			.toFixed(0);
 
-			const priceInt = new BigNumber(leg.limit_price)
+			const priceInt = new BigNumber(leg.lp)
 			.multipliedBy(PRICE_MULTIPLIER)
 			.integerValue(BigNumber.ROUND_FLOOR)
 			.toFixed(0);
@@ -132,7 +133,7 @@ export default class Grvt extends BaseExchange {
 				"assetID": instrument.instrument_hash as `0x${string}`,
 				"contractSize": BigInt(sizeInt),
 				"limitPrice": BigInt(priceInt),
-				"isBuyingContract": leg.is_buying_asset,
+				"isBuyingContract": leg.ib,
 			}
 		})
 
@@ -174,9 +175,9 @@ export default class Grvt extends BaseExchange {
 				chainId: 325,
 			},
 			message: {
-				subAccountID: BigInt(order.sub_account_id),
-				isMarket: order.is_market,
-				timeInForce: timeInForce[order.time_in_force as keyof typeof timeInForce],
+				subAccountID: BigInt(order.sa),
+				isMarket: order.im,
+				timeInForce: timeInForce[order.ti as keyof typeof timeInForce],
 				postOnly: false,
 				reduceOnly: false,
 				legs: legs,
@@ -195,7 +196,7 @@ export default class Grvt extends BaseExchange {
 		const s = `0x${signature.slice(66, 130)}`; // 接下来的 64 字节为 s
 		const v = parseInt(signature.slice(130, 132), 16); // 最后一个字节为 v
 		return {
-			r,s,v,nonce: +nonce,expiration: expiration.toString(),signer: account.address
+			r,s1: s,v,n: +nonce,e: expiration.toString(),s: account.address
 		};
 	}
 
@@ -274,17 +275,17 @@ export default class Grvt extends BaseExchange {
 
 	static parseOrder(order: any, symbol: string) {
 		return {
-			id: order.order_id,
+			id: order.oi,
 			symbol,
-			clientOrderId: order.metadata.client_order_id,
-			status: order.state.status.toLowerCase(),
-			side: order.legs[0].is_buying_asset ? 'buy' : 'sell',
-			type: order.is_market ? 'market' : 'limit',
-			price: +order.legs[0].limit_price,
+			clientOrderId: order.m.co,
+			status: order.s1.s.toLowerCase(),
+			side: order.l[0].ib ? 'buy' : 'sell',
+			type: order.im ? 'market' : 'limit',
+			price: +order.l[0].lp,
 			average: 0,
-			amount: +order.legs[0].size,
+			amount: +order.l[0].s,
 			filled: 0,
-			remaining: +order.legs[0].size,
+			remaining: +order.l[0].s,
 			info: order,
 		};
 	}
@@ -321,20 +322,20 @@ export default class Grvt extends BaseExchange {
 	) {
 		const keys = apiKeys || paramsExtra?.apiKeys;
 
-		const response = await requestInstance('https://trades.grvt.io/full/v1/open_orders', {
+		const response = await requestInstance('https://trades.grvt.io/lite/v1/open_orders', {
 			method: 'POST',
 			// @ts-ignore
-			headers: await this.getAuthHeaders(socksProxy, keys),
+			headers: paramsExtra.headers || await this.getAuthHeaders(socksProxy, keys),
 			data: {
-				sub_account_id: paramsExtra.sub_account_id,
-				kind: ['PERPETUAL'],
-				base: [symbol.split('/')[0]],
-				quote: ['USDT'],
+				sa: paramsExtra.sub_account_id,
+				k: ['PERPETUAL'],
+				b: [symbol.split('/')[0]],
+				q: ['USDT'],
 			},
 			httpsAgent: getAgent(socksProxy),
 		});
 
-		return response.data.result.map((order: any) => this.parseOrder(order, symbol));
+		return response.data.r.map((order: any) => this.parseOrder(order, symbol));
 	}
 
 	static async createOrder(
@@ -350,37 +351,37 @@ export default class Grvt extends BaseExchange {
 		const market = this.getMarket(symbol);
 		const keys = apiKeys || paramsExtra?.apiKeys;
 
-		let url = 'https://trades.grvt.io/full/v1/create_order';
+		let url = 'https://trades.grvt.io/lite/v1/create_order';
 		const body = {
-			order: {
-				sub_account_id: paramsExtra.sub_account_id,
-				is_market: type === 'market',
-				time_in_force: 'GOOD_TILL_TIME',
-				post_only: false,
-				reduce_only: false,
-				legs: [
+			o: {
+				sa: paramsExtra.sub_account_id,
+				im: type === 'market',
+				ti: 'GOOD_TILL_TIME',
+				po: false,
+				ro: false,
+				l: [
 					{
-						instrument: market.symbol,
-						size: amount.toString(),
-						limit_price: (price|| 0).toString(),
-						is_buying_asset: side === 'buy',
+						i: market.symbol,
+						s: amount.toString(),
+						lp: (price|| 0).toString(),
+						ib: side === 'buy',
 					},
 				],
-				metadata: {
-					client_order_id: new Date().getTime().toString()
+				m: {
+					co: new Date().getTime().toString()
 				},
 			},
 		};
 		// @ts-ignore
-		body.order.signature = await this.buildOrderSignature(keys.secret, body.order)
+		body.o.s = await this.buildOrderSignature(keys.secret, body.o)
 		const response = await requestInstance(url, {
 			method: 'POST',
 			// @ts-ignore
-			headers: await this.getAuthHeaders(socksProxy, keys),
+			headers: paramsExtra.headers || await this.getAuthHeaders(socksProxy, keys),
 			data: body,
 			httpsAgent: getAgent(socksProxy),
 		});
-		return this.parseOrder(response.data.result, symbol);
+		return this.parseOrder(response.data.r, symbol);
 	}
 	/** --- custom api request ---- */
 	static async customRequest(
@@ -425,17 +426,31 @@ export default class Grvt extends BaseExchange {
 // 	// console.log(await Grvt.fetchTicker('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
 // 	// console.log(await Grvt.getAuthHeaders('socks://127.0.0.1:7890', apiKeys));
 // 	// console.log(await Grvt.fetchBalance('socks://127.0.0.1:7890', apiKeys));
-// 	console.log(
-// 		await Grvt.fetchOpenOrders(
-// 			'socks://127.0.0.1:7890',
-// 			apiKeys,
-// 			'BTC/USDT:USDT',
-// 			undefined,
-// 			20,
-// 			{sub_account_id: ""},
-// 		),
-// 	);
-// 	// console.log(await Grvt.createOrder('socks://127.0.0.1:7890', apiKeys, 'BTC/USDT:USDT', 'market', 'sell', 0.001,0, {}));
+// 	// console.log(
+// 	// 	await Grvt.fetchOpenOrders(
+// 	// 		'socks://127.0.0.1:7890',
+// 	// 		undefined,
+// 	// 		'BTC/USDT:USDT',
+// 	// 		undefined,
+// 	// 		20,
+// 	// 		{sub_account_id: "", apiKeys: {
+// 	// 			apiKey: '',
+// 	// 			secret: ''
+// 	// 		}, headers: {
+// 	// 			Cookie: '',
+// 	// 			'x-grvt-account-id': ''
+// 	// 		}},
+// 	// 	),
+// 	// );
+// 	// console.log(await Grvt.createOrder('socks://127.0.0.1:7890', undefined, 'BTC/USDT:USDT', 'limit', 'buy', 0.001,90000, {
+// 	// 	sub_account_id: "", apiKeys: {
+// 	// 		apiKey: '',
+// 	// 		secret: ''
+// 	// 	}, headers: {
+// 	// 		Cookie: '',
+// 	// 		'x-grvt-account-id': ''
+// 	// 	}
+// 	// }));
 // 	// console.log(await Bitget.cancelOrder('socks://127.0.0.1:7890', apiKeys, 'c775afc3-6c6a-4cb9-944e-c13a1faac92b', 'BTC/USDT:USDT'));
 // 	// console.log(await Grvt.fetchOrderBook('socks://127.0.0.1:7890', 'BTC/USDT:USDT'));
 // }

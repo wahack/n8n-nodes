@@ -12,17 +12,18 @@ export const description: INodeProperties[] = [
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
+		description: 'Select the Operation(action) to operate on',
 		options: [
 			{
 				name: 'Fetch Ticker',
 				value: 'fetchTicker',
-				description: 'Fetch latest ticker data by trading symbol',
-				action: 'Fetch ticker',
+				description: 'Fetch latest ticker data',
+				action: 'Fetch ticker'
 			},
 			{
 				name: 'Fetch Order Book',
 				value: 'fetchOrderBook',
-				description: 'Fetch L2/L3 order book for a particular market trading symbol',
+				description: 'Fetch order book for a particular market trading symbol',
 				action: 'Fetch order book',
 			},
 			{

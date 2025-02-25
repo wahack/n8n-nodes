@@ -18,9 +18,10 @@ export class CoinTradeApi implements ICredentialType {
 	icon: Icon = 'file:icons/cointrade.svg';
 	properties: INodeProperties[] = [
 		{
-			displayName: '交易所',
+			displayName: 'platform',
 			name: 'platform',
 			type: 'options',
+			description: 'Select Exchange for API',
 			default: 'binance',
 			options: [
 				{

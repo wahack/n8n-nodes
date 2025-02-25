@@ -7,16 +7,15 @@ import * as trade from './trade/trade.resource';
 import * as fund from './fund/fund.resource';
 import * as custom from './custom/custom.resource';
 
-
 export const description: INodeTypeDescription = {
 	displayName: 'Coin Trade',
 	name: 'coinTrade',
 	icon: 'file:cointrade.svg',
 	version: 1,
 	subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',
-	description: 'consume the crypto exchange api',
+	description: 'Provide a unified cryptocurrency trading exchange API (markets and trading APIs) compatible with ccxt(https://github.com/ccxt/ccxt), supporting multiple exchanges. The API interface parameters and response data structure are consistent with ccxt standard.',
 	defaults: {
-		name: 'Coin Trade',
+		name: 'Coin Trade'
 	},
 	group: ['input', 'output'],
 	inputs: [NodeConnectionType.Main],
@@ -25,7 +24,7 @@ export const description: INodeTypeDescription = {
 	credentials: [
 		{
 			name: 'coinTradeApi',
-			displayName: '交易所 api',
+			displayName: 'coinTradeApi',
 			required: false,
 			displayOptions: {
 				show: {
@@ -36,10 +35,11 @@ export const description: INodeTypeDescription = {
 	],
 	properties: [
 		{
-			displayName: '交易所',
+			displayName: 'Select Exchange',
 			name: 'platform',
 			type: 'options',
 			noDataExpression: false,
+			description: 'Select Exchange for API call',
 			// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 			options: [
 				{
@@ -82,8 +82,10 @@ export const description: INodeTypeDescription = {
 			default: 'binance',
 		},
 		{
-			displayName: '代理',
+			displayName: 'Socks Proxy',
 			name: 'proxy',
+			hint: 'Input Format: socks://user:password@ip:port',
+			description: 'Socks proxy for API, if needed',
 			type: 'string',
 			default: '',
 			placeholder: 'e.g. socks://user:password@ip:port',
@@ -92,22 +94,28 @@ export const description: INodeTypeDescription = {
 			displayName: 'Resource',
 			name: 'resource',
 			type: 'options',
+			// eslint-disable-next-line n8n-nodes-base/node-param-description-weak
+			description: 'Select the resource(action) to operate on',
 			noDataExpression: true,
 			options: [
 				{
 					name: 'Market',
 					value: 'market',
+					description: 'Public Market API',
 				},{
 					name: 'Trade',
-					value: 'trade'
+					value: 'trade',
+					description: 'Private Trade API',
 				},
 				{
 					name: 'Fund',
-					value: 'fund'
+					value: 'fund',
+					description: 'Private Fund API',
 				},
 				{
 					name: 'Custom',
-					value: 'custom'
+					value: 'custom',
+					description: 'Make Custom request',
 				}
 			],
 			default: 'market',
